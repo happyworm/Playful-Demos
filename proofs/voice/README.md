@@ -23,7 +23,7 @@ sampleRate / 2 = Nyquist Frequency
 Nyquist Frequency / frequencyBinCount = Hz/Bin
 ```
 
-**sampleRate / frequencyBinCount = Hz/Bin**
+**sampleRate / fftSize = Hz/Bin**
 
 For example:
 * fftSize = 512
