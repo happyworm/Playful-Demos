@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script>
+		window.onload = function() {
+			
+			// webrtc script file
+
+		navigator.getUserMedia ||
+		  (navigator.getUserMedia = navigator.mozGetUserMedia ||
+		  navigator.webkitGetUserMedia || navigator.msGetUserMedia);
+
+		window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+
+		if (navigator.getUserMedia) {
+		    navigator.getUserMedia({
+		        video: true,
+		        audio: false
+		    }, onSuccess, onError);
+		} else {
+		    alert('getUserMedia is not supported in this browser.');
+		}
+
+		function onSuccess(stream) {
+		    var video = document.getElementById('webcam');
+		    var videoSource;
+		    
+		    videoSource = window.URL.createObjectURL(stream);
+		    video.autoplay = true;
+		    video.src = videoSource;
+		}
+
+
+		function onError() {
+		    alert('There has been a problem retreiving the streams - are you running on file:/// or did you disallow access?');
+		}
+
+		var red = 0;
+
+		var processor = {
+
+	  		timerCallback: function() {
+	    		if (this.video.paused || this.video.ended) {  
+	      		return;
+	    		}
+	    		this.computeFrame();
+	    		var self = this;
+	    		setTimeout(function () {
+	      		self.timerCallback();
+	    		}, 0);
+	  		}, 
+
+	  		doLoad: function() { 
+	    		this.video = document.getElementById("webcam"); 
+	    		this.c1 = document.getElementById("c1"); 
+	    		this.ctx1 = this.c1.getContext("2d"); 
+
+	    		var self = this;
+
+	    		this.video.addEventListener("play", function() { 
+	      		self.width = self.video.width;  
+	      		self.height = self.video.height;  
+	      		self.timerCallback(); 
+	    		}, false); 
+	  		},  
+
+	  		computeFrame: function() { 
+	    		this.ctx1.drawImage(this.video, 0, 0, this.width, this.height); 
+	    		var frame = this.ctx1.getImageData(0, 0, this.width, this.height);
+
+	    		var l = frame.data.length / 4;
+	    		var totalR = 0, totalG = 0, totalB = 0;
+
+	    		for (var i = 0; i < l; i++) {
+      			totalR += frame.data[i * 4 + 0];
+      			totalG += frame.data[i * 4 + 1];
+      			totalB += frame.data[i * 4 + 2];
+    			}
+
+    			var averageR = Math.floor(totalR/l);
+    			var averageG = Math.floor(totalG/l);
+    			var averageB = Math.floor(totalB/l);
+
+    			document.getElementById("my-rgb").innerHTML = averageR + ", " + averageG + ", " + averageB;
+    			document.getElementById("my-light").innerHTML = averageR + averageG + averageB;
+
+	      	for (var i = 0; i < l; i++) {
+	        	frame.data[i * 4 + 0] = averageR; 
+	        	frame.data[i * 4 + 1] = averageG; 
+	        	frame.data[i * 4 + 2] = averageB;
+	      	} 
+	      	this.ctx1.putImageData(frame, 0, 0);
+
+	    		return; 
+	  		} 
+		};
+
+		processor.doLoad();
+	}
+	</script>
+</head>
+<body>
+	<p style="text-align:center"><video id="webcam" width="480" height="360"></video></p>
+	<p style="text-align:center"><canvas id="c1" width="480" height="360"></canvas></p>
+	<p style="text-align:center">Average Colour RGB (0-255, 0-255, 0-255) <span id="my-rgb"></span></p>
+	<p style="text-align:center">Light (0-765) <span id="my-light"></span></p>
+</body>
+
+</html>
