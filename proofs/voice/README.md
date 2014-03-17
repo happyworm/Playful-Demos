@@ -17,9 +17,11 @@ To use the microphone to detect when someone has spoken.
 
 ## Analyser FFT Bin Frequency
 
+```
 fftSize / 2 = frequencyBinCount
 sampleRate / 2 = Nyquist Frequency
 Nyquist Frequency / frequencyBinCount = Hz/Bin
+```
 
 **sampleRate / frequencyBinCount = Hz/Bin**
 
