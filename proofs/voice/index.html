@@ -74,8 +74,7 @@
 		console.log(error.name + ": " + error.message);
 	}
 
-	console.dir(navigator);
-
+	// console.dir(navigator);
 	// navigator.getUserMedia('audio', gotAudio, logError);
 
 	if(navigator.getUserMedia) { // W3C
@@ -94,6 +93,8 @@
 			// console.log([i,value])
 		}
 	};
+
+	console.log("sample rate: " + context.sampleRate);
 
 </script>
 </body>
