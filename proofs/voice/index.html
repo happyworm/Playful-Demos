@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Proof : Voice detection using microphone</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+</head>
+<body>
+
+	<div id="voice" class="jp-jplayer"></div>
+
+	<canvas id="c"></canvas>
+
+<script type="text/javascript">
+
+	var context = new (window.AudioContext || window.webkitAudioContext)();
+
+	function gotAudio(stream) {
+		var microphone = context.createMediaStreamSource(stream);
+		var analyser = context.createAnalyser();
+		microphone.connect(analyser);
+		analyser.connect(context.destination);
+		// requestAnimationFrame(drawAnimation);
+	}
+
+	function logError(error) {
+		console.log(error.name + ": " + error.message);
+	}
+
+	console.dir(navigator);
+
+	// navigator.getUserMedia('audio', gotAudio, logError);
+
+	if(navigator.getUserMedia) { // W3C
+		navigator.getUserMedia({audio:true}, gotAudio, logError);
+	} else if(navigator.webkitGetUserMedia) { // WebKit
+		navigator.webkitGetUserMedia({audio:true}, gotAudio, logError);
+	} else if(navigator.mozGetUserMedia) { // Mozilla
+		navigator.mozGetUserMedia({audio:true}, gotAudio, logError);
+	}
+
+</script>
+</body>
+</html>
