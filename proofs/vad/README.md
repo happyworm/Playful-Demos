@@ -7,6 +7,11 @@ To use the microphone to detect when someone has spoken.
 ## VAD Resources
 
 * [Real-Time VAD Algorithm](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.176.6740&rep=rep1&type=pdf)
+* [How do you calculate spectral flatness from an FFT?](http://dsp.stackexchange.com/questions/2045/how-do-you-calculate-spectral-flatness-from-an-fft)
+* [Spectral flatness](http://en.wikipedia.org/wiki/Spectral_flatness)
+
+## Speech Resources
+
 * [annyang! SpeechRecognition](https://www.talater.com/annyang/)
 * [annyang! GitHub](https://github.com/TalAter/annyang)
 
