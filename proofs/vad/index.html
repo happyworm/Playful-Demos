@@ -50,7 +50,7 @@
 		analyser.fftSize = 512;
 
 		// analyser.maxDecibels = -20;
-		// analyser.minDecibels = -60;
+		analyser.minDecibels = -60;
 
 		// connect up the nodes
 		microphone.connect(analyser);
@@ -71,7 +71,8 @@
 			drawSpectrum(ctx_energy, [
 				myVad.getEnergy(),
 				255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
-				-25.5*myVad.getSFM()
+				-25.5*myVad.getSFM(),
+				255*myVad.iterate()
 			]);
 		};
 

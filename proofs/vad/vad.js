@@ -31,6 +31,24 @@ var vad = (function() {
 				this.options[option] = options[option];
 			}
 		}
+		// Setup the initial thresholds
+		this.t_E = this.options.pt_E;
+		this.t_F = this.options.pt_F;
+		this.t_SF = this.options.pt_SF;
+		// Init the min values
+		this.min_E = 0;
+		this.min_F = 0;
+		this.min_SF = 0;
+		// The min value sums
+		this.sum_E = 0;
+		this.sum_F = 0;
+		this.sum_SF = 0;
+		// The min value sum length
+		this.sum_counts = 30;
+		// Counters
+		this.silence_count = 0;
+		this.speech_count = 0;
+		this.initial_count = 0;
 	};
 	vad.prototype = {
 		getEnergy: function() {
@@ -106,6 +124,68 @@ var vad = (function() {
 				// console.log("geometric: " + geometric + " | arithmetic: " + arithmetic + " | SF: " + SF + " | SFM: " + SFM);
 			}
 			return SFM;
+		},
+		iterate: function() {
+
+			var votes = 0;
+
+			var msg = "";
+
+			// Assuming the first N frames are silence, and use them to work out the minimums.
+			if(this.initial_count < this.sum_counts) {
+				this.initial_count++;
+				this.sum_E += this.getEnergy();
+				this.sum_F += this.getFrequency();
+				this.sum_SF += this.getSFM();
+				return 0; // false; // still initializing.
+			} else if(this.initial_count === this.sum_counts) {
+				this.initial_count++;
+				this.min_E = this.sum_E / this.sum_counts;
+				this.min_F = this.sum_F / this.sum_counts;
+				this.min_SF = this.sum_SF / this.sum_counts;
+				// Set decision threshold.
+				this.t_E = this.options.pt_E * Math.log(this.min_E);
+			}
+
+			// Collect votes on speech detection
+			var energy = this.getEnergy();
+			var delta_E = energy - this.min_E;
+			if(delta_E >= this.t_E) {
+				votes++;
+				msg += " E";
+			}
+			var delta_F = this.getFrequency() - this.min_F;
+			if(delta_F >= this.t_F) {
+				votes++;
+				msg += " F";
+			}
+			var delta_SF = this.getSFM() - this.min_SF;
+			if(delta_SF >= this.t_SF) {
+				votes++;
+				msg += " SF";
+			}
+
+			// Record votes
+			if(votes > 1) {
+				// speech
+				this.silence_count = 0;
+				this.speech_count++;
+			} else {
+				// silence
+				this.silence_count++;
+				this.speech_count = 0;
+				// Update min energy
+				this.min_E = ((this.silence_count * this.min_E) + energy) / (this.silence_count + 1);
+				this.t_E = this.options.pt_E * Math.log(this.min_E);
+			}
+
+			console.log("votes: " + votes + "(" + msg + ") | speech: " + this.speech_count + " | silence: " + this.silence_count + " | t_E: " + this.t_E + " | dE: " + delta_E + " | t_F: " + this.t_F + " | dF: " + delta_F + " | t_SF: " + this.t_SF + " | dSF: " + delta_SF);
+
+			if(this.speech_count > 5) {
+				return 1;
+			} else {
+				return 0;
+			}
 		}
 	};
 	return vad;
