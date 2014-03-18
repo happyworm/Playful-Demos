@@ -2,7 +2,7 @@
 
 ## Goal
 
-To use the microphone to detect when someone has spoken.
+To demonstrate the microphone working with the Web Audio API
 
 
 ## Resources
