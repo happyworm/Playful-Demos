@@ -59,11 +59,15 @@ var vad = (function() {
 			this.analyser.getByteTimeDomainData(waveform);
 
 			for(var i = 0, iLen = waveform.length; i < iLen; i++) {
-				value = (waveform[i] - 128) / 128;
+				// value = (waveform[i] - 128) / 128;
+				value = (waveform[i] - 128);
 				energy += value * value;
 			}
 
 			// console.log("energy: " + energy);
+
+			// power...
+			energy = 1 / (waveform.length + 1) * energy;
 
 			return energy;
 		},
@@ -176,10 +180,11 @@ var vad = (function() {
 				this.speech_count = 0;
 				// Update min energy
 				this.min_E = ((this.silence_count * this.min_E) + energy) / (this.silence_count + 1);
+				this.min_E = this.min_E < 1 ? 1 : this.min_E; // (MJP added) Limit the minimum energy to 1
 				this.t_E = this.options.pt_E * Math.log(this.min_E);
 			}
 
-			console.log("votes: " + votes + "(" + msg + ") | speech: " + this.speech_count + " | silence: " + this.silence_count + " | t_E: " + this.t_E + " | dE: " + delta_E + " | t_F: " + this.t_F + " | dF: " + delta_F + " | t_SF: " + this.t_SF + " | dSF: " + delta_SF);
+			// console.log("votes: " + votes + "(" + msg + ") | speech: " + this.speech_count + " | silence: " + this.silence_count + " | t_E: " + this.t_E + " | dE: " + delta_E + " | E: " + energy + " | t_F: " + this.t_F + " | dF: " + delta_F + " | t_SF: " + this.t_SF + " | dSF: " + delta_SF);
 
 			if(this.speech_count > 5) {
 				return 1;
