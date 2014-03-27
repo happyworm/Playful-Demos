@@ -59,15 +59,15 @@ var vad = (function() {
 			this.analyser.getByteTimeDomainData(waveform);
 
 			for(var i = 0, iLen = waveform.length; i < iLen; i++) {
-				// value = (waveform[i] - 128) / 128;
-				value = (waveform[i] - 128);
+				value = (waveform[i] - 128) / 128;
+				// value = (waveform[i] - 128);
 				energy += value * value;
 			}
 
 			// console.log("energy: " + energy);
 
-			// power...
-			energy = 1 / (waveform.length + 1) * energy;
+			// Back to 8bit
+			energy = 255 * energy;
 
 			return energy;
 		},
