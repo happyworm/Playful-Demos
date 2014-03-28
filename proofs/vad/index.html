@@ -7,10 +7,10 @@
 </head>
 <body>
 
-	<div id="voice" class="jp-jplayer"></div>
-
 	<canvas id="spectrum" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
+
+	<p><button id="log">log</button></p>
 
 <script type="text/javascript" src="vad.js"></script>
 <script type="text/javascript">
@@ -35,18 +35,21 @@
 	gradient.addColorStop(0.5,'#cccc00');
 	gradient.addColorStop(0.1,'#ff0000');
 
+	var myVad;
+
 	function gotAudio(stream) {
 
 		microphone = context.createMediaStreamSource(stream);
 
 		// setup a javascript node
-		javascriptNode = context.createScriptProcessor(2048, 1, 1);
+		// javascriptNode = context.createScriptProcessor(2048, 1, 1);
+		javascriptNode = context.createScriptProcessor(512, 1, 1);
 		// connect to destination, else it isn't called
 		javascriptNode.connect(context.destination);
 
 		// setup an analyzer
 		analyser = context.createAnalyser();
-		analyser.smoothingTimeConstant = 0.8; // 0.3;
+		analyser.smoothingTimeConstant = 0.99; // 0.3;
 		analyser.fftSize = 512;
 
 		// analyser.maxDecibels = -20;
@@ -70,6 +73,10 @@
 
 			drawSpectrum(ctx_energy, [
 				myVad.getEnergy(),
+				myVad.getEnergyB(),
+				myVad.getEnergyC(),
+				255e8 * myVad.getEnergyD(),
+				255e8 * myVad.energyMonitor(),
 				255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
 				-25.5*myVad.getSFM(),
 				255*myVad.iterate()
@@ -110,6 +117,13 @@
 	};
 
 	console.log("sample rate: " + context.sampleRate);
+
+	var logBtn = document.querySelector('#log');
+	if(logBtn) {
+		logBtn.addEventListener('click', function() {
+			myVad.triggerLog();
+		}, false);
+	}
 
 </script>
 </body>

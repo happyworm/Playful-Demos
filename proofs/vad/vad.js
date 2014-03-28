@@ -13,7 +13,7 @@
 
 var vad = (function() {
 
-	var private_vars = 1;
+	var private_vars = 0;
 
 	var vad = function(analyser, options) {
 		this.analyser = analyser;
@@ -49,8 +49,29 @@ var vad = (function() {
 		this.silence_count = 0;
 		this.speech_count = 0;
 		this.initial_count = 0;
+
+		// Energy detector props
+		this.energy_threshold = 1e-8;
+
+		// log stuff
+		this.logging = false;
+		this.log_i = 0;
+		this.log_limit = 100;
 	};
 	vad.prototype = {
+		triggerLog: function(limit) {
+			this.logging = true;
+			this.log_i = 0;
+			this.log_limit = typeof limit === 'number' ? limit : this.log_limit;
+		},
+		log: function(msg) {
+			if(this.logging && this.log_i < this.log_limit) {
+				this.log_i++;
+				console.log(msg);
+			} else {
+				this.logging = false;
+			}
+		},
 		getEnergy: function() {
 			// energy = SUM n=-inf->inf |x(n)|^2
 
@@ -64,12 +85,93 @@ var vad = (function() {
 				energy += value * value;
 			}
 
-			// console.log("energy: " + energy);
-
-			// Back to 8bit
-			energy = 255 * energy;
+			energy = 255 * energy / (waveform.length + 1);
 
 			return energy;
+		},
+		getEnergyB: function() {
+
+			var value, energy = 0;
+			var fft = new Uint8Array(this.analyser.frequencyBinCount);
+			this.analyser.getByteFrequencyData(fft);
+
+			for(var i = 0, iLen = fft.length; i < iLen; i++) {
+				// value = fft[i] / 255;
+				value = Math.pow(10, (fft[i] - 255) / 2550);
+				energy += value * value;
+			}
+
+			// energy = 255 * energy / (fft.length + 1);
+
+			return energy;
+		},
+		getEnergyC: function() {
+
+			var value, energy = 0;
+			var fft = new Float32Array(this.analyser.frequencyBinCount);
+			this.analyser.getFloatFrequencyData(fft);
+
+			for(var i = 0, iLen = fft.length; i < iLen; i++) {
+				value = Math.pow(10, fft[i] / 10);
+				energy += value * value;
+			}
+
+			// energy = 255 * energy / (fft.length + 1);
+
+			energy = 255e8 * energy;
+
+			// console.log('energy: ' + energy);
+
+			return energy;
+		},
+		getEnergyD: function() {
+
+			var value, energy = 0;
+			var fft = new Float32Array(this.analyser.frequencyBinCount);
+			this.analyser.getFloatFrequencyData(fft);
+
+			// approx 200 to 2k
+
+			for(var i = 2, iLen = fft.length; i < 20; i++) {
+				value = Math.pow(10, fft[i] / 10);
+				energy += value * value;
+			}
+
+			// energy = 255 * energy / (fft.length + 1);
+
+			// energy = 255e8 * energy;
+
+			// console.log('energy: ' + energy);
+
+			return energy;
+		},
+		energyMonitor: function() {
+			var energy = this.getEnergyD();
+			var detection = energy - this.energy_threshold;
+			var detected = false;
+			// var integration = energy / 0.000001; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+			var integration = detection / 100; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+			if(detection >= 0) {
+				detected = true;
+				// this.energy_threshold += integration;
+			} else {
+				// this.energy_threshold -= integration;
+			}
+			this.energy_threshold += integration;
+			this.energy_threshold = this.energy_threshold < 0 ? 0 : this.energy_threshold;
+
+			if(detected) {
+				// We raise an event?
+			}
+
+			this.log(
+				'e: ' + energy +
+				' | e_th: ' + this.energy_threshold +
+				' | int: ' + integration +
+				' | detection: ' + detection
+			);
+
+			return detection;
 		},
 		getFrequency: function() {
 			var dominantBin = 0, maxBin = 0;
