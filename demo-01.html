@@ -13,6 +13,7 @@
 	<p><button id="log">log</button></p>
 
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
+<script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript">
 
 	var context = new (window.AudioContext || window.webkitAudioContext)();
@@ -20,20 +21,23 @@
 	var analyser;
 	var javascriptNode;
 
-	var canvas_width = 1275; // 5 * 255
-	var canvas_height = 255;
-	// get the context from the canvas to draw on
-	var ctx_spectrum = document.getElementById("spectrum").getContext("2d");
-	var ctx_energy = document.getElementById("energy").getContext("2d");
+	// Use Graph module to display the spectrum
+	var graph_spectrum = new Graph({
+		canvas: {
+			id: 'spectrum',
+			width: 1275,
+			height: 255
+		}
+	});
 
-	// create a gradient for the fill. Note the strange
-	// offset, since the gradient is calculated based on
-	// the canvas, not the specific element we draw
-	var gradient = ctx_spectrum.createLinearGradient(0,0,0,canvas_height);
-	gradient.addColorStop(1,'#000000');
-	gradient.addColorStop(0.75,'#00cc00');
-	gradient.addColorStop(0.5,'#cccc00');
-	gradient.addColorStop(0.1,'#ff0000');
+	// Use Graph module to display the energy
+	var graph_energy = new Graph({
+		canvas: {
+			id: 'energy',
+			width: 1275,
+			height: 255
+		}
+	});
 
 	var myVad;
 
@@ -69,9 +73,9 @@
 			// get the average for the first channel
 			var array = new Uint8Array(analyser.frequencyBinCount);
 			analyser.getByteFrequencyData(array);
-			drawSpectrum(ctx_spectrum, array);
+			graph_spectrum.draw(array);
 
-			drawSpectrum(ctx_energy, [
+			graph_energy.draw([
 				myVad.getEnergy(),
 				myVad.getEnergyB(),
 				myVad.getEnergyC(),
@@ -101,20 +105,6 @@
 	} else if(navigator.mozGetUserMedia) { // Mozilla
 		navigator.mozGetUserMedia({audio:true}, gotAudio, logError);
 	}
-
-	function drawSpectrum(ctx, array) {
-
-		// clear the current state
-		ctx.clearRect(0, 0, canvas_width, canvas_height);
-
-		// set the fill style
-		ctx.fillStyle = gradient;
-
-		for ( var i = 0, iLen = array.length; i < iLen; i++ ){
-			var value = array[i];
-			ctx.fillRect(i*5, canvas_height - value, 3, value);
-		}
-	};
 
 	console.log("sample rate: " + context.sampleRate);
 
