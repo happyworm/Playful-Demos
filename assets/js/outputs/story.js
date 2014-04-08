@@ -13,6 +13,8 @@
 
 (function(PM) {
 
+	var DEBUG = true;
+
 	var Story = function(options) {
 		this.init(options);
 	};
@@ -55,9 +57,36 @@
 				bgm: 0
 			};
 			// Init tracks
-			this.setTrack('story');
-			this.setTrack('bgm');
+			// this.setTrack('story');
+			// this.setTrack('bgm');
+			this.initTracks();
 
+		},
+		initTracks: function() {
+			var self = this;
+			var ended = function(track) {
+				return function() {
+					if(DEBUG) console.log('ended: ' + track);
+					self.nextAudio(track);
+				}
+			}
+			for(var track in this.audio) {
+				if(this.audio.hasOwnProperty(track)) {
+					if(DEBUG) console.log('initTracks: ' + track);
+					this.audio[track].addEventListener('ended', (function() {
+						return ended(track);
+					}()), false);
+					this.setTrack(track);
+				}
+			}
+		},
+		resetTracks: function() {
+			for(var track in this.audio) {
+				if(this.audio.hasOwnProperty(track)) {
+					if(DEBUG) console.log('resetTracks: ' + track);
+					this.setTrack(track);
+				}
+			}
 		},
 		setTrack: function(track, list) {
 			if(typeof list === 'undefined') {
@@ -68,6 +97,14 @@
 			// Setup the track
 			this.index[track] = 0;
 			this.setAudio(track, list[0]);
+			if(DEBUG) console.log('setTrack: ' + track);
+		},
+		nextAudio: function(track) {
+			this.index[track]++;
+			this.index[track] = this.index[track] < this.options[track].length ? this.index[track] : 0;
+			this.setAudio(track, this.options[track][this.index[track]]);
+			this.play(track);
+			if(DEBUG) console.log('nextAudio: ' + track + '[' + this.index[track] + ']');
 		},
 		setAudio: function(track, audio) {
 			// track: (String) To indicate the story or bgm
@@ -90,20 +127,31 @@
 			}
 			this.audio[track].load();
 			this.audio[track].volume = typeof audio.vol === 'number' ? audio.vol : 1;
+			if(DEBUG) console.log('setAudio: ' + track + ' | audio = %o', audio);
 		},
-		start: function() {
-			// On the first time we play everything.
-			for(var track in this.audio) {
-				if(this.audio.hasOwnProperty(track)) {
+		play: function(track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
 					this.audio[track].play();
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.audio[track].play();
+					}
 				}
 			}
 		},
-		stop: function() {
-			// Pause all tracks
-			for(var track in this.audio) {
-				if(this.audio.hasOwnProperty(track)) {
+		pause: function(track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
 					this.audio[track].pause();
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.audio[track].pause();
+					}
 				}
 			}
 		},

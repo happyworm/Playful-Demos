@@ -4,6 +4,22 @@
 <meta charset="utf-8" />
 <title>Perceptive Media: Playful Demos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<style>
+span.module {
+	background-color: #ccc;
+	border: 1px solid #666;
+	padding: 5px 0 5px 5px;
+	margin-right: 10px;
+	border-radius: 0px 5px 5px 0;
+	font-weight: bold;
+}
+.module button {
+	background-color: #ccf;
+	border: 2px solid #669;
+	border-radius: 5px;
+	font-weight: bold;
+}
+</style>
 </head>
 <body>
 
@@ -12,7 +28,15 @@
 	<canvas id="spectrum" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 
-	<p><button id="log">log</button></p>
+	<p>
+		<span id="story" class="module">
+			Story:
+			<button id="story-play">play</button>
+			<button id="story-pause">pause</button>
+			<button id="story-reset">reset</button>
+		</span>
+		<button id="log">log</button>
+	</p>
 
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
@@ -137,6 +161,16 @@
 			}
 		]
 	});
+
+	document.querySelector('#story-play').addEventListener('click', function() {
+		myStory.play();
+	}, false);
+	document.querySelector('#story-pause').addEventListener('click', function() {
+		myStory.pause();
+	}, false);
+	document.querySelector('#story-reset').addEventListener('click', function() {
+		myStory.resetTracks();
+	}, false);
 
 </script>
 </body>
