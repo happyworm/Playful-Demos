@@ -7,6 +7,8 @@
 </head>
 <body>
 
+	<div id="story"></div>
+
 	<canvas id="spectrum" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 
@@ -14,6 +16,7 @@
 
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
+<script type="text/javascript" src="assets/js/outputs/story.js"></script>
 <script type="text/javascript">
 
 	var context = new (window.AudioContext || window.webkitAudioContext)();
@@ -114,6 +117,26 @@
 			myVad.triggerLog();
 		}, false);
 	}
+
+	var myStory = new Story({
+		wrapper: {
+			id: 'story'
+		},
+		story: [
+			{
+				mp3: 'assets/audio/tangye/00002.mp3'
+			},
+			{
+				mp3: 'assets/audio/tangye/00003.mp3'
+			}
+		],
+		bgm: [
+			{
+				mp3: 'assets/audio/tangye/00001.mp3',
+				vol: 0.1
+			}
+		]
+	});
 
 </script>
 </body>
