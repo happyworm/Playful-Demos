@@ -34,8 +34,11 @@
 				wrapper: {
 					id: 'story'
 				},
-				story: [],
-				bgm: [],
+				track: { // This object acts as the main track reference. Properties in this object create tracks.
+					// story: [],
+					// bgm: [],
+					// sfx: []
+				},
 				audioType: {
 					mp3: 'audio/mpeg'
 				}
@@ -46,12 +49,8 @@
 					this.options[option] = options[option];
 				}
 			}
-			// Create the audio tracks. This object acts as the main track reference definition.
-			this.audio = {
-				story: document.createElement('audio'),
-				bgm: document.createElement('audio')
-			};
 			// Properties to hold track information
+			this.audio = {};
 			this.index = {};
 			this.status = {};
 			// Init tracks
@@ -78,10 +77,13 @@
 					self.status[track].paused = true;
 				}
 			};
-			for(var track in this.audio) {
-				if(this.audio.hasOwnProperty(track)) {
+			// for(var track in this.audio) {
+			for(var track in this.options.track) {
+				if(this.options.track.hasOwnProperty(track)) {
 					if(DEBUG) console.log('initTracks: ' + track);
 
+					// Create the audio tracks.
+					this.audio[track] = document.createElement('audio');
 					// Audio track index
 					this.index[track] = 0;
 					// Status
@@ -122,9 +124,9 @@
 		},
 		setTrack: function(track, list) {
 			if(typeof list === 'undefined') {
-				list = this.options[track];
+				list = this.options.track[track];
 			} else {
-				this.options[track] = list;
+				this.options.track[track] = list;
 			}
 			// Setup the track
 			this.index[track] = 0;
@@ -135,8 +137,8 @@
 			if(typeof track === 'string') {
 				if(this.audio[track]) {
 					this.index[track]++;
-					this.index[track] = this.index[track] < this.options[track].length ? this.index[track] : 0;
-					this.setAudio(track, this.options[track][this.index[track]]);
+					this.index[track] = this.index[track] < this.options.track[track].length ? this.index[track] : 0;
+					this.setAudio(track, this.options.track[track][this.index[track]]);
 					this.play(track);
 					if(DEBUG) console.log('nextAudio: ' + track + '[' + this.index[track] + ']');
 				}

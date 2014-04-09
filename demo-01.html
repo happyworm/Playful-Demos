@@ -151,6 +151,18 @@ span.module {
 		}, false);
 	}
 
+	var tangye = {
+		list: {}, // where the parsed results are stored.
+		// story: '', // default
+		ignore: '', // ignore these numbers.
+		bgm: '1', // music
+		sfx: '' // sound effect
+	};
+
+	tangye.list.ignore = tangye.ignore.split(/\s+/g);
+	tangye.list.bgm = tangye.bgm.split(/\s+/g);
+	tangye.list.sfx = tangye.sfx.split(/\s+/g);
+
 	var autoStory = [],
 		autoAudio = {},
 		autoURL = '';
@@ -171,26 +183,28 @@ span.module {
 		wrapper: {
 			id: 'story'
 		},
-		story: autoStory,
-/*
-		[
-			{
-				mp3: 'assets/audio/tangye/00002.mp3'
-			},
-			{
-				mp3: 'assets/audio/tangye/00003.mp3'
-			},
-			{
-				mp3: 'assets/audio/tangye/00004.mp3'
-			}
-		],
-*/
-		bgm: [
-			{
-				mp3: 'assets/audio/tangye/00001.mp3',
-				vol: 0.1
-			}
-		]
+		track: {
+			story: autoStory,
+	/*
+			[
+				{
+					mp3: 'assets/audio/tangye/00002.mp3'
+				},
+				{
+					mp3: 'assets/audio/tangye/00003.mp3'
+				},
+				{
+					mp3: 'assets/audio/tangye/00004.mp3'
+				}
+			],
+	*/
+			bgm: [
+				{
+					mp3: 'assets/audio/tangye/00001.mp3',
+					vol: 0.1
+				}
+			]
+		}
 	});
 
 	document.querySelector('#story-play').addEventListener('click', function() {
