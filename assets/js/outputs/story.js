@@ -8,7 +8,7 @@
  *
  * Author: Mark J Panaghiston
  * Version: 0.0.1
- * Date: 8th April 2014
+ * Date: 9th April 2014
  */
 
 (function(PM) {
@@ -46,25 +46,14 @@
 					this.options[option] = options[option];
 				}
 			}
-			// Create the audio tracks
+			// Create the audio tracks. This object acts as the main track reference definition.
 			this.audio = {
 				story: document.createElement('audio'),
 				bgm: document.createElement('audio')
 			};
-			// Audio track index
-			this.index = {
-				story: 0,
-				bgm: 0
-			};
-			// Status
-			this.status = {
-				story: {
-					paused: true
-				},
-				bgm: {
-					paused: true
-				}
-			};
+			// Properties to hold track information
+			this.index = {};
+			this.status = {};
 			// Init tracks
 			this.initTracks();
 
@@ -92,6 +81,14 @@
 			for(var track in this.audio) {
 				if(this.audio.hasOwnProperty(track)) {
 					if(DEBUG) console.log('initTracks: ' + track);
+
+					// Audio track index
+					this.index[track] = 0;
+					// Status
+					this.status[track] = {
+						paused: true
+					};
+
 					// Created event handlers for the track
 					this.audio[track].addEventListener('ended', (function() {
 						return ended(track);
@@ -102,6 +99,7 @@
 					this.audio[track].addEventListener('pause', (function() {
 						return pause(track);
 					}()), false);
+
 					// Setup the first piece on each track
 					this.setTrack(track);
 				}
