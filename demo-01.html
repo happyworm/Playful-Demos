@@ -34,6 +34,7 @@ span.module {
 			<button id="story-play">play</button>
 			<button id="story-pause">pause</button>
 			<button id="story-reset">reset</button>
+			<button id="story-next">next</button>
 		</span>
 		<button id="log">log</button>
 	</p>
@@ -152,6 +153,9 @@ span.module {
 			},
 			{
 				mp3: 'assets/audio/tangye/00003.mp3'
+			},
+			{
+				mp3: 'assets/audio/tangye/00004.mp3'
 			}
 		],
 		bgm: [
@@ -170,6 +174,9 @@ span.module {
 	}, false);
 	document.querySelector('#story-reset').addEventListener('click', function() {
 		myStory.resetTracks();
+	}, false);
+	document.querySelector('#story-next').addEventListener('click', function() {
+		myStory.nextAudio('story');
 	}, false);
 
 </script>

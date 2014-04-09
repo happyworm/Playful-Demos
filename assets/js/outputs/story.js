@@ -56,9 +56,16 @@
 				story: 0,
 				bgm: 0
 			};
+			// Status
+			this.status = {
+				story: {
+					paused: true
+				},
+				bgm: {
+					paused: true
+				}
+			};
 			// Init tracks
-			// this.setTrack('story');
-			// this.setTrack('bgm');
 			this.initTracks();
 
 		},
@@ -69,13 +76,33 @@
 					if(DEBUG) console.log('ended: ' + track);
 					self.nextAudio(track);
 				}
-			}
+			};
+			var play = function(track) {
+				return function() {
+					if(DEBUG) console.log('play: ' + track);
+					self.status[track].paused = false;
+				}
+			};
+			var pause = function(track) {
+				return function() {
+					if(DEBUG) console.log('pause: ' + track);
+					self.status[track].paused = true;
+				}
+			};
 			for(var track in this.audio) {
 				if(this.audio.hasOwnProperty(track)) {
 					if(DEBUG) console.log('initTracks: ' + track);
+					// Created event handlers for the track
 					this.audio[track].addEventListener('ended', (function() {
 						return ended(track);
 					}()), false);
+					this.audio[track].addEventListener('play', (function() {
+						return play(track);
+					}()), false);
+					this.audio[track].addEventListener('pause', (function() {
+						return pause(track);
+					}()), false);
+					// Setup the first piece on each track
 					this.setTrack(track);
 				}
 			}
