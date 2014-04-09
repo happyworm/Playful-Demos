@@ -107,11 +107,18 @@
 				}
 			}
 		},
-		resetTracks: function() {
-			for(var track in this.audio) {
-				if(this.audio.hasOwnProperty(track)) {
-					if(DEBUG) console.log('resetTracks: ' + track);
+		resetTrack: function(track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
+					if(DEBUG) console.log('resetTrack: ' + track);
 					this.setTrack(track);
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						if(DEBUG) console.log('resetTrack: ' + track);
+						this.setTrack(track);
+					}
 				}
 			}
 		},
@@ -127,11 +134,21 @@
 			if(DEBUG) console.log('setTrack: ' + track);
 		},
 		nextAudio: function(track) {
-			this.index[track]++;
-			this.index[track] = this.index[track] < this.options[track].length ? this.index[track] : 0;
-			this.setAudio(track, this.options[track][this.index[track]]);
-			this.play(track);
-			if(DEBUG) console.log('nextAudio: ' + track + '[' + this.index[track] + ']');
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
+					this.index[track]++;
+					this.index[track] = this.index[track] < this.options[track].length ? this.index[track] : 0;
+					this.setAudio(track, this.options[track][this.index[track]]);
+					this.play(track);
+					if(DEBUG) console.log('nextAudio: ' + track + '[' + this.index[track] + ']');
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.nextAudio(track);
+					}
+				}
+			}
 		},
 		setAudio: function(track, audio) {
 			// track: (String) To indicate the story or bgm

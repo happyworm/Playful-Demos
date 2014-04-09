@@ -8,7 +8,7 @@
 span.module {
 	background-color: #ccc;
 	border: 1px solid #666;
-	padding: 5px 0 5px 5px;
+	padding: 5px;
 	margin-right: 10px;
 	border-radius: 0px 5px 5px 0;
 	font-weight: bold;
@@ -35,7 +35,15 @@ span.module {
 			<button id="story-pause">pause</button>
 			<button id="story-reset">reset</button>
 			<button id="story-next">next</button>
+			<input type="radio" name="story-track" id="story-track-all" value="" checked />
+			<label for="story-track-all">ALL</label>
+			<input type="radio" name="story-track" id="story-track-story" value="story" />
+			<label for="story-track-story">story</label>
+			<input type="radio" name="story-track" id="story-track-bgm" value="bgm" />
+			<label for="story-track-bgm">bgm</label>
 		</span>
+	</p>
+	<p>
 		<button id="log">log</button>
 	</p>
 
@@ -186,18 +194,38 @@ span.module {
 	});
 
 	document.querySelector('#story-play').addEventListener('click', function() {
-		myStory.play();
+		myStory.play(getTrack());
 	}, false);
 	document.querySelector('#story-pause').addEventListener('click', function() {
-		myStory.pause();
+		myStory.pause(getTrack());
 	}, false);
 	document.querySelector('#story-reset').addEventListener('click', function() {
-		myStory.resetTracks();
+		myStory.resetTrack(getTrack());
 	}, false);
 	document.querySelector('#story-next').addEventListener('click', function() {
-		myStory.nextAudio('story');
+		myStory.nextAudio(getTrack());
 	}, false);
 
+
+	var getRadioValue = function(name) {
+		var value;
+		var options = document.getElementsByName(name);
+		for(var i = 0; i < options.length; i++) {
+			if(options[i].checked === true) {
+				value = options[i].value;
+				console.log('getRadioValue: value = "' + value + '"');
+			}
+		}
+		return value;
+	};
+
+	var getTrack = function() {
+		var track = getRadioValue("story-track");
+		track = track ? track : undefined;
+		return track;
+	}
+
+	// getRadioValue("story-track");
 </script>
 </body>
 </html>
