@@ -143,11 +143,29 @@ span.module {
 		}, false);
 	}
 
+	var autoStory = [],
+		autoAudio = {},
+		autoURL = '';
+	for(var aa=0, aaLen = 300; aa < aaLen; aa++) {
+		if(aa < 10) {
+			autoURL = '00';
+		} else if(aa < 100) {
+			autoURL = '0';
+		}
+		autoAudio = {
+			// mp3: 'assets/audio/tangye/00002.mp3'
+			mp3: 'assets/audio/tangye/00' + autoURL + aa + '.mp3'
+		};
+		autoStory.push(autoAudio);
+	}
+
 	var myStory = new Story({
 		wrapper: {
 			id: 'story'
 		},
-		story: [
+		story: autoStory,
+/*
+		[
 			{
 				mp3: 'assets/audio/tangye/00002.mp3'
 			},
@@ -158,6 +176,7 @@ span.module {
 				mp3: 'assets/audio/tangye/00004.mp3'
 			}
 		],
+*/
 		bgm: [
 			{
 				mp3: 'assets/audio/tangye/00001.mp3',
