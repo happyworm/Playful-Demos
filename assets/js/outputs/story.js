@@ -150,6 +150,23 @@
 				}
 			}
 		},
+		previousAudio: function(track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
+					this.index[track]--;
+					this.index[track] = this.index[track] < 0 ? this.options.track[track].length - 1 : this.index[track];
+					this.setAudio(track, this.options.track[track][this.index[track]]);
+					this.play(track);
+					if(DEBUG) console.log('previousAudio: ' + track + '[' + this.index[track] + ']');
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.previousAudio(track);
+					}
+				}
+			}
+		},
 		setAudio: function(track, audio) {
 			// track: (String) To indicate the story or bgm
 			// audio: (Object) The media object

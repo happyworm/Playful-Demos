@@ -34,6 +34,7 @@ span.module {
 			<button id="story-play">play</button>
 			<button id="story-pause">pause</button>
 			<button id="story-reset">reset</button>
+			<button id="story-previous">previous</button>
 			<button id="story-next">next</button>
 			<input type="radio" name="story-track" id="story-track-all" value="" checked />
 			<label for="story-track-all">ALL</label>
@@ -245,6 +246,9 @@ span.module {
 	}, false);
 	document.querySelector('#story-reset').addEventListener('click', function() {
 		myStory.resetTrack(getTrack());
+	}, false);
+	document.querySelector('#story-previous').addEventListener('click', function() {
+		myStory.previousAudio(getTrack());
 	}, false);
 	document.querySelector('#story-next').addEventListener('click', function() {
 		myStory.nextAudio(getTrack());
