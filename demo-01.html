@@ -157,9 +157,9 @@ span.module {
 	var tangye = {
 		list: {}, // where the parsed results are stored.
 		// story: '', // default
-		ignore: '27 51 61 65 73 78 84 98 108 151 223 238 255', // ignore these numbers.
-		bgm: '1 26 70', // music
-		sfx: '0 12 13 32 34 37 39 40 41 43' // sound effect
+		ignore: '27 51 61 65 73 78 84 98 103 108 111 113 130 140 144 151 190 210 223 237 238 255', // ignore these numbers.
+		bgm: '1 26 70 115 135 143 156 201 217 243 261', // music
+		sfx: '0 12 13 32 34 37 39 40 41 43 179' // sound effect
 	};
 
 	tangye.list.ignore = tangye.ignore.split(/\s+/g);
@@ -182,7 +182,7 @@ span.module {
 		},
 		autoAudio = {},
 		autoURL = '';
-	for(var aa=0, aaLen = 300; aa < aaLen; aa++) {
+	for(var aa=0, aaLen = 266; aa < aaLen; aa++) {
 
 		if(checklist(aa, tangye.list.ignore)) {
 			continue; // Jump to next loop
