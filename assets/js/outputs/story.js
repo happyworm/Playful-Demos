@@ -41,7 +41,8 @@
 				},
 				audioType: {
 					mp3: 'audio/mpeg'
-				}
+				},
+				context: null
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -49,10 +50,13 @@
 					this.options[option] = options[option];
 				}
 			}
+			// The Web Audio API context
+			this.context = PM && PM.context ? PM.context : this.options.context;
 			// Properties to hold track information
 			this.audio = {};
 			this.index = {};
 			this.status = {};
+			this.waapi = {};
 			// Init tracks
 			this.initTracks();
 
@@ -90,6 +94,10 @@
 					this.status[track] = {
 						paused: true
 					};
+					// The Web Audio API source
+					if(this.context) {
+						this.waapi[track] = this.context.createMediaElementSource(this.audio[track]);
+					}
 
 					// Created event handlers for the track
 					this.audio[track].addEventListener('ended', (function() {
@@ -212,6 +220,24 @@
 				for(track in this.audio) {
 					if(this.audio.hasOwnProperty(track)) {
 						this.audio[track].pause();
+					}
+				}
+			}
+		},
+		// To connect the audio to the Web Audio API
+		connect: function(output, track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
+					// Connect the Web Audio API source
+					if(this.context) {
+						this.waapi[track].connect(output);
+					}
+					if(DEBUG) console.log('connect: ' + track);
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.connect(track, output);
 					}
 				}
 			}

@@ -25,9 +25,6 @@ span.module {
 
 	<div id="story"></div>
 
-	<canvas id="spectrum" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
-	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
-
 	<p>
 		<span id="story" class="module">
 			Story:
@@ -45,10 +42,12 @@ span.module {
 			<input type="radio" name="story-track" id="story-track-sfx" value="sfx" />
 			<label for="story-track-sfx">sfx</label>
 		</span>
+		<button id="log">VAD log</button>
 	</p>
-	<p>
-		<button id="log">log</button>
-	</p>
+
+	<canvas id="spectrum-story" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
+	<canvas id="spectrum-mic" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
+	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
@@ -61,9 +60,16 @@ span.module {
 	var javascriptNode;
 
 	// Use Graph module to display the spectrum
-	var graph_spectrum = new Graph({
+	var graph_spectrum_story = new Graph({
 		canvas: {
-			id: 'spectrum',
+			id: 'spectrum-story',
+			width: 1275,
+			height: 255
+		}
+	});
+	var graph_spectrum_mic = new Graph({
+		canvas: {
+			id: 'spectrum-mic',
 			width: 1275,
 			height: 255
 		}
@@ -112,7 +118,7 @@ span.module {
 			// get the average for the first channel
 			var array = new Uint8Array(analyser.frequencyBinCount);
 			analyser.getByteFrequencyData(array);
-			graph_spectrum.draw(array);
+			graph_spectrum_mic.draw(array);
 
 			graph_energy.draw([
 				myVad.getEnergy(),
@@ -213,29 +219,8 @@ span.module {
 		wrapper: {
 			id: 'story'
 		},
-		track: autoTrack
-/*
-		track: {
-			story: autoTrack,
-			[
-				{
-					mp3: 'assets/audio/tangye/00002.mp3'
-				},
-				{
-					mp3: 'assets/audio/tangye/00003.mp3'
-				},
-				{
-					mp3: 'assets/audio/tangye/00004.mp3'
-				}
-			],
-			bgm: [
-				{
-					mp3: 'assets/audio/tangye/00001.mp3',
-					vol: 0.1
-				}
-			]
-		}
-*/
+		track: autoTrack,
+		context: context
 	});
 
 	document.querySelector('#story-play').addEventListener('click', function() {
