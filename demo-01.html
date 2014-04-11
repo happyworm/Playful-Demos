@@ -49,6 +49,7 @@ span.module {
 	<canvas id="spectrum-mic" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 
+<script type="text/javascript" src="assets/js/core/probe.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
@@ -258,7 +259,17 @@ span.module {
 		return track;
 	}
 
-	// getRadioValue("story-track");
+	var myProbe = new Probe({
+		context: context,
+		onaudioprocess: function(event) {
+			var array = new Uint8Array(this.analyser.frequencyBinCount);
+			this.analyser.getByteFrequencyData(array);
+			graph_spectrum_story.draw(array);
+		}
+	});
+
+	myStory.connect(myProbe.analyser);
+
 </script>
 </body>
 </html>

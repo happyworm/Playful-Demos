@@ -97,6 +97,7 @@
 					// The Web Audio API source
 					if(this.context) {
 						this.waapi[track] = this.context.createMediaElementSource(this.audio[track]);
+						this.waapi[track].connect(this.context.destination); // Not sure we want to turn on the sound here.
 					}
 
 					// Created event handlers for the track
@@ -237,7 +238,7 @@
 			} else {
 				for(track in this.audio) {
 					if(this.audio.hasOwnProperty(track)) {
-						this.connect(track, output);
+						this.connect(output, track);
 					}
 				}
 			}
