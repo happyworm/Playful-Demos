@@ -32,10 +32,12 @@
 			var self = this;
 			// The default options
 			this.options = {
+				context: null,
+				input: null, // The Node to connect to the input. Usually an AudioNode, but can be any object. [Rule: It must have the connect() method.]
+				output: null,
 				fftSize: 512,
 				scriptSize: 512,
 				onaudioprocess: null,
-				context: null
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -50,25 +52,31 @@
 			if(this.context) {
 
 				this.scriptNode = this.context.createScriptProcessor(this.options.scriptSize, 1, 1);
-				// connect to destination, else it isn't called
-				this.scriptNode.connect(this.context.destination);
 
 				// setup an analyzer
-				this.analyser = this.context.createAnalyser();
+				this.inputNode = this.analyser = this.context.createAnalyser();
 				this.analyser.smoothingTimeConstant = 0.99; // 0.3;
 				this.analyser.fftSize = this.options.fftSize;
 
 				// analyser.maxDecibels = -20;
 				// analyser.minDecibels = -60;
 
-				// connect up the nodes
-				// microphone.connect(analyser);
-				this.analyser.connect(this.scriptNode);
-
 				if(typeof this.options.onaudioprocess === 'function') {
 					this.scriptNode.onaudioprocess = function(event) {
 						self.options.onaudioprocess.call(self, event);
 					};
+				}
+
+				// Connect the audio map
+				if(this.options.input) {
+					this.options.input.connect(this.analyser);
+				}
+				this.analyser.connect(this.scriptNode);
+				if(this.options.output) {
+					this.scriptNode.connect(this.options.output);
+				} else {
+					// This map must go somewhere. Connect to the destination.
+					this.scriptNode.connect(this.context.destination);
 				}
 			}
 		}

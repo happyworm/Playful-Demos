@@ -261,14 +261,17 @@ span.module {
 
 	var myProbe = new Probe({
 		context: context,
+		input: myStory, // Pass in the input. [Requires the connect() method.]
+		output: context.destination, // This is the default
 		onaudioprocess: function(event) {
+			// Executes within the context of the Probe instance.
 			var array = new Uint8Array(this.analyser.frequencyBinCount);
 			this.analyser.getByteFrequencyData(array);
 			graph_spectrum_story.draw(array);
 		}
 	});
 
-	myStory.connect(myProbe.analyser);
+	// myStory.connect(myProbe.inputNode);
 
 </script>
 </body>
