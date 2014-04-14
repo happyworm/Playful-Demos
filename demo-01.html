@@ -25,7 +25,7 @@ span.module {
 
 	<div id="story"></div>
 
-	<p>
+	<p id="gui">
 		<span id="story" class="module">
 			Story:
 			<button id="story-play">play</button>
@@ -51,6 +51,7 @@ span.module {
 
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
+<script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
@@ -269,6 +270,17 @@ span.module {
 			graph_spectrum_story.draw(array);
 		}
 	});
+
+	var myMsg = PM.MessageEmulator({
+		id: 'gui',
+		className: 'module',
+		title: 'Generate Message Type: ',
+		type: 'bananas'
+	});
+
+	PM.listen('bananas', function() {
+		console.log('MessageEmulator: bananas');
+	})
 
 </script>
 </body>
