@@ -18,6 +18,7 @@ span.module {
 	border: 2px solid #669;
 	border-radius: 5px;
 	font-weight: bold;
+	cursor: pointer;
 }
 </style>
 </head>
@@ -275,11 +276,14 @@ span.module {
 		id: 'gui',
 		className: 'module',
 		title: 'Generate Message Type: ',
-		type: 'bananas'
+		type: ['bananas', 'apples']
 	});
 
 	PM.listen('bananas', function() {
 		console.log('MessageEmulator: bananas');
+	})
+	PM.listen('apples', function() {
+		console.log('MessageEmulator: apples');
 	})
 
 </script>
