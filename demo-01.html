@@ -49,6 +49,7 @@ span.module {
 	<canvas id="spectrum-mic" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
 
+<script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
@@ -61,14 +62,14 @@ span.module {
 	var javascriptNode;
 
 	// Use Graph module to display the spectrum
-	var graph_spectrum_story = new Graph({
+	var graph_spectrum_story = PM.Graph({
 		canvas: {
 			id: 'spectrum-story',
 			width: 1275,
 			height: 255
 		}
 	});
-	var graph_spectrum_mic = new Graph({
+	var graph_spectrum_mic = PM.Graph({
 		canvas: {
 			id: 'spectrum-mic',
 			width: 1275,
@@ -77,7 +78,7 @@ span.module {
 	});
 
 	// Use Graph module to display the energy
-	var graph_energy = new Graph({
+	var graph_energy = PM.Graph({
 		canvas: {
 			id: 'energy',
 			width: 1275,
@@ -216,7 +217,7 @@ span.module {
 		}
 	}
 
-	var myStory = new Story({
+	var myStory = PM.Story({
 		wrapper: {
 			id: 'story'
 		},
@@ -259,10 +260,8 @@ span.module {
 		return track;
 	}
 
-	var myProbe = new Probe({
-		context: context,
-		input: myStory, // Pass in the input. [Requires the connect() method.]
-		output: context.destination, // This is the default
+	var myProbe = PM.Probe({
+		input: myStory, // Pass in the input Node. [Requires the connect() method.]
 		onaudioprocess: function(event) {
 			// Executes within the context of the Probe instance.
 			var array = new Uint8Array(this.analyser.frequencyBinCount);
@@ -270,8 +269,6 @@ span.module {
 			graph_spectrum_story.draw(array);
 		}
 	});
-
-	// myStory.connect(myProbe.inputNode);
 
 </script>
 </body>
