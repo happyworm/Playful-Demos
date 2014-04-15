@@ -37,7 +37,7 @@
 				output: null,
 				fftSize: 512,
 				scriptSize: 512,
-				onaudioprocess: null,
+				onaudioprocess: null
 			};
 			// Read in instancing options.
 			for(var option in options) {
