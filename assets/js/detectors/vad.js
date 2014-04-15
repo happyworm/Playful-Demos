@@ -32,7 +32,6 @@ var Vad = (function(PM) {
 		this.options = {
 			probe: null, // A Probe instance.
 			pt_E: 40, // Energy_PrimeThresh
-			pt_F: 185, // F_PrimeThresh (Hz)
 			pt_SF: 5, // SF_PrimeThresh
 			// fftSize: 512,
 			sampleRate: 48000
@@ -45,15 +44,12 @@ var Vad = (function(PM) {
 		}
 		// Setup the initial thresholds
 		this.t_E = this.options.pt_E;
-		this.t_F = this.options.pt_F;
 		this.t_SF = this.options.pt_SF;
 		// Init the min values
 		this.min_E = 0;
-		this.min_F = 0;
 		this.min_SF = 0;
 		// The min value sums
 		this.sum_E = 0;
-		this.sum_F = 0;
 		this.sum_SF = 0;
 		// The min value sum length
 		this.sum_counts = 30;
@@ -64,6 +60,9 @@ var Vad = (function(PM) {
 
 		// Energy detector props
 		this.energy_threshold = 1e-8;
+
+		// Setup local storage of the Linear FFT data
+		this.floatFrequencyDataLinear = new Float32Array(this.options.probe.floatFrequencyData.length);
 
 		// log stuff
 		this.logging = false;
@@ -84,65 +83,22 @@ var Vad = (function(PM) {
 				this.logging = false;
 			}
 		},
+		update: function() {
+			// Update the local version of the Linear FFT
+			var fft = this.options.probe.floatFrequencyData;
+			for(var i = 0, iLen = fft.length; i < iLen; i++) {
+				this.floatFrequencyDataLinear[i] = Math.pow(10, fft[i] / 10);
+			}
+		},
 		getEnergy: function() {
-			// energy = SUM n=-inf->inf |x(n)|^2
 
-			var value, energy = 0;
-			var waveform = this.options.probe.byteTimeDomainData;
-
-			for(var i = 0, iLen = waveform.length; i < iLen; i++) {
-				value = (waveform[i] - 128) / 128;
-				// value = (waveform[i] - 128);
-				energy += value * value;
-			}
-
-			energy = 255 * energy / (waveform.length + 1);
-
-			return energy;
-		},
-		getEnergyB: function() {
-
-			var value, energy = 0;
-			var fft = this.options.probe.byteFrequencyData;
-
-			for(var i = 0, iLen = fft.length; i < iLen; i++) {
-				// value = fft[i] / 255;
-				value = Math.pow(10, (fft[i] - 255) / 2550);
-				energy += value * value;
-			}
-
-			// energy = 255 * energy / (fft.length + 1);
-
-			return energy;
-		},
-		getEnergyC: function() {
-
-			var value, energy = 0;
-			var fft = this.options.probe.floatFrequencyData;
-
-			for(var i = 0, iLen = fft.length; i < iLen; i++) {
-				value = Math.pow(10, fft[i] / 10);
-				energy += value * value;
-			}
-
-			// energy = 255 * energy / (fft.length + 1);
-
-			energy = 255e8 * energy;
-
-			// console.log('energy: ' + energy);
-
-			return energy;
-		},
-		getEnergyD: function() {
-
-			var value, energy = 0;
-			var fft = this.options.probe.floatFrequencyData;
+			var energy = 0;
+			var fft = this.floatFrequencyDataLinear;
 
 			// approx 200 to 2k
 
 			for(var i = 2, iLen = fft.length; i < 20; i++) {
-				value = Math.pow(10, fft[i] / 10);
-				energy += value * value;
+				energy += fft[i] * fft[i];
 			}
 
 			// energy = 255 * energy / (fft.length + 1);
@@ -154,7 +110,7 @@ var Vad = (function(PM) {
 			return energy;
 		},
 		energyMonitor: function() {
-			var energy = this.getEnergyD();
+			var energy = this.getEnergy();
 			var detection = energy - this.energy_threshold;
 			var detected = false;
 			// var integration = energy / 0.000001; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
@@ -181,57 +137,32 @@ var Vad = (function(PM) {
 
 			return detection;
 		},
-		getFrequency: function() {
-			var dominantBin = 0, maxBin = 0;
-			var binHz = this.options.sampleRate / this.options.probe.analyser.fftSize;
-
-			var fft = this.options.probe.byteFrequencyData;
-
-			for(var i = 0, iLen = fft.length; i < iLen; i++) {
-				if(fft[i] > maxBin) {
-					dominantBin = i;
-					maxBin = fft[i];
-				}
-			}
-
-			var frequency = (dominantBin * binHz) + (binHz / 2);
-			// console.log("frequency: " + frequency);
-			return frequency;
-		},
 		getSFM: function() {
 
 			var geometric = 0;
 			var arithmetic = 0;
 
-			var bin;
-			var empty = 0;
-
-			var fft = this.options.probe.byteFrequencyData;
+			var fft = this.floatFrequencyDataLinear;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
-				bin = (fft[i] + 1) / 256; // So it is never zero
-				// console.log("fft[" + i + "]: " + fft[i]);
-				if(true || fft[i] > 0) {
-					// bin = fft[i] / 255;
-					// bin = fft[i];
-					geometric += Math.log(bin);
-					arithmetic += bin;
-				} else {
-					// empty++;
-				}
+				// this.log("fft[" + i + "]: " + fft[i]);
+				geometric += Math.log(fft[i]);
+				arithmetic += fft[i];
 			}
 
-			var bins = fft.length - empty;
-
-			geometric = Math.exp(geometric / bins);
-			arithmetic = arithmetic / bins;
+			geometric = Math.exp(geometric / fft.length);
+			arithmetic = arithmetic / fft.length;
 
 			var SF = geometric / arithmetic;
 			var SFM = 10 * Math.log(SF) / Math.log(10);
 
-			if(arithmetic > 0) {
-				// console.log("geometric: " + geometric + " | arithmetic: " + arithmetic + " | SF: " + SF + " | SFM: " + SFM);
-			}
+			this.log(
+				"geometric: " + geometric +
+				" | arithmetic: " + arithmetic +
+				" | SF: " + SF +
+				" | SFM: " + SFM
+			);
+
 			return SFM;
 		},
 		iterate: function() {
@@ -244,13 +175,11 @@ var Vad = (function(PM) {
 			if(this.initial_count < this.sum_counts) {
 				this.initial_count++;
 				this.sum_E += this.getEnergy();
-				this.sum_F += this.getFrequency();
 				this.sum_SF += this.getSFM();
 				return 0; // false; // still initializing.
 			} else if(this.initial_count === this.sum_counts) {
 				this.initial_count++;
 				this.min_E = this.sum_E / this.sum_counts;
-				this.min_F = this.sum_F / this.sum_counts;
 				this.min_SF = this.sum_SF / this.sum_counts;
 				// Set decision threshold.
 				this.t_E = this.options.pt_E * Math.log(this.min_E);
@@ -262,11 +191,6 @@ var Vad = (function(PM) {
 			if(delta_E >= this.t_E) {
 				votes++;
 				msg += " E";
-			}
-			var delta_F = this.getFrequency() - this.min_F;
-			if(delta_F >= this.t_F) {
-				votes++;
-				msg += " F";
 			}
 			var delta_SF = this.getSFM() - this.min_SF;
 			if(delta_SF >= this.t_SF) {
@@ -289,7 +213,16 @@ var Vad = (function(PM) {
 				this.t_E = this.options.pt_E * Math.log(this.min_E);
 			}
 
-			// console.log("votes: " + votes + "(" + msg + ") | speech: " + this.speech_count + " | silence: " + this.silence_count + " | t_E: " + this.t_E + " | dE: " + delta_E + " | E: " + energy + " | t_F: " + this.t_F + " | dF: " + delta_F + " | t_SF: " + this.t_SF + " | dSF: " + delta_SF);
+			this.log(
+				"votes: " + votes + "(" + msg + ")" +
+				" | speech: " + this.speech_count +
+				" | silence: " + this.silence_count +
+				" | t_E: " + this.t_E +
+				" | dE: " + delta_E +
+				" | E: " + energy +
+				" | t_SF: " + this.t_SF +
+				" | dSF: " + delta_SF
+			);
 
 			if(this.speech_count > 5) {
 				return 1;

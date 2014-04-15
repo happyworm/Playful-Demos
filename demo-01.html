@@ -129,14 +129,11 @@ span.module {
 
 		PM.listen('probeupdate', function(data) {
 			if(data.id === 'mic') {
+				myVad.update();
 				graph_energy.draw([
-					myVad.getEnergy(),
-					myVad.getEnergyB(),
-					myVad.getEnergyC(),
-					255e8 * myVad.getEnergyD(),
+					255e8 * myVad.getEnergy(),
 					255e8 * myVad.energyMonitor(),
-					255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
-					-25.5*myVad.getSFM(),
+					32*(myVad.getSFM() + 35),
 					255*myVad.iterate()
 				]);
 			}
