@@ -100,16 +100,7 @@ span.module {
 		myMicrophoneProbe = PM.Probe({
 			input: microphone, // Pass in the input Node. [Requires the connect() method.]
 			onaudioprocess: function(event) {
-				// get the average for the first channel
-				var array = new Uint8Array(this.analyser.frequencyBinCount);
-				this.analyser.getByteFrequencyData(array);
-				graph_spectrum_mic.draw(array);
-
-				var fft = new Float32Array(this.analyser.frequencyBinCount);
-				this.analyser.getFloatFrequencyData(fft);
-
-				var tdd = new Uint8Array(this.analyser.frequencyBinCount);
-				this.analyser.getByteTimeDomainData(tdd);
+				graph_spectrum_mic.draw(this.byteFrequencyData);
 
 /*
 				graph_energy.draw([
@@ -132,54 +123,6 @@ span.module {
 		});
 
 		myVad = new vad(myMicrophoneProbe.analyser);
-
-
-/*
-		// setup a javascript node
-		// javascriptNode = context.createScriptProcessor(2048, 1, 1);
-		javascriptNode = context.createScriptProcessor(512, 1, 1);
-		// connect to destination, else it isn't called
-		javascriptNode.connect(context.destination);
-
-		// setup an analyzer
-		analyser = context.createAnalyser();
-		analyser.smoothingTimeConstant = 0.99; // 0.3;
-		analyser.fftSize = 512;
-
-		// analyser.maxDecibels = -20;
-		// analyser.minDecibels = -60;
-
-		// connect up the nodes
-		microphone.connect(analyser);
-		analyser.connect(javascriptNode);
-
-		myVad = new vad(analyser);
-
-		// when the javascript node is called
-		// we use information from the analyzer node
-		// to draw the volume
-		javascriptNode.onaudioprocess = function() {
-
-			// get the average for the first channel
-			var array = new Uint8Array(analyser.frequencyBinCount);
-			analyser.getByteFrequencyData(array);
-			graph_spectrum_mic.draw(array);
-
-			graph_energy.draw([
-				myVad.getEnergy(),
-				myVad.getEnergyB(),
-				myVad.getEnergyC(),
-				255e8 * myVad.getEnergyD(),
-				255e8 * myVad.energyMonitor(),
-				255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
-				-25.5*myVad.getSFM(),
-				255*myVad.iterate()
-			]);
-		};
-
-		// TMP - Remove to avoid feedback!
-		// microphone.connect(context.destination);
-*/
 	}
 
 	function logError(error) {
