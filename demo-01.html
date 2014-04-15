@@ -108,6 +108,9 @@ span.module {
 				var fft = new Float32Array(this.analyser.frequencyBinCount);
 				this.analyser.getFloatFrequencyData(fft);
 
+				var tdd = new Uint8Array(this.analyser.frequencyBinCount);
+				this.analyser.getByteTimeDomainData(tdd);
+
 /*
 				graph_energy.draw([
 					myVad.getEnergy(),
