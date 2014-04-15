@@ -59,9 +59,11 @@ span.module {
 <script type="text/javascript">
 
 	var context = new (window.AudioContext || window.webkitAudioContext)();
+/*
 	var microphone;
 	var analyser;
 	var javascriptNode;
+*/
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
@@ -89,11 +91,47 @@ span.module {
 	});
 
 	var myVad;
+	var myMicrophoneProbe;
 
 	function gotAudio(stream) {
 
-		microphone = context.createMediaStreamSource(stream);
+		var microphone = PM.context.createMediaStreamSource(stream);
 
+		myMicrophoneProbe = PM.Probe({
+			input: microphone, // Pass in the input Node. [Requires the connect() method.]
+			onaudioprocess: function(event) {
+				// get the average for the first channel
+				var array = new Uint8Array(this.analyser.frequencyBinCount);
+				this.analyser.getByteFrequencyData(array);
+				graph_spectrum_mic.draw(array);
+
+				var fft = new Float32Array(this.analyser.frequencyBinCount);
+				this.analyser.getFloatFrequencyData(fft);
+
+/*
+				graph_energy.draw([
+					myVad.getEnergy(),
+					myVad.getEnergyB(),
+					myVad.getEnergyC(),
+					255e8 * myVad.getEnergyD(),
+					255e8 * myVad.energyMonitor(),
+					255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
+					-25.5*myVad.getSFM(),
+					255*myVad.iterate()
+				]);
+
+				graph_energy.draw([
+					255e8 * myVad.getEnergyD(),
+					255e8 * myVad.energyMonitor()
+				]);
+*/
+			}
+		});
+
+		myVad = new vad(myMicrophoneProbe.analyser);
+
+
+/*
 		// setup a javascript node
 		// javascriptNode = context.createScriptProcessor(2048, 1, 1);
 		javascriptNode = context.createScriptProcessor(512, 1, 1);
@@ -138,6 +176,7 @@ span.module {
 
 		// TMP - Remove to avoid feedback!
 		// microphone.connect(context.destination);
+*/
 	}
 
 	function logError(error) {
@@ -262,7 +301,7 @@ span.module {
 		return track;
 	}
 
-	var myProbe = PM.Probe({
+	var myStoryProbe = PM.Probe({
 		input: myStory, // Pass in the input Node. [Requires the connect() method.]
 		onaudioprocess: function(event) {
 			// Executes within the context of the Probe instance.
