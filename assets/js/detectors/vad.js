@@ -8,17 +8,29 @@
  *
  * Author: Mark J Panaghiston
  * Version: 0.0.1
- * Date: 18th March 2014
+ * Date: 15th April 2014
  */
 
-var vad = (function() {
+var Vad = (function(PM) {
 
-	var private_vars = 0;
+	var DEBUG = true;
 
-	var vad = function(analyser, options) {
-		this.analyser = analyser;
+	var Vad = function(options) {
+		this.init(options);
+	};
+
+	if(typeof PM === 'undefined') {
+		window.Vad = Vad; // 
+	} else {
+		PM.Vad = function(options) {
+			return new Vad(options); // 
+		};
+	}
+
+	var Vad = function(options) {
 		// The default options
 		this.options = {
+			probe: null, // A Probe instance.
 			pt_E: 40, // Energy_PrimeThresh
 			pt_F: 185, // F_PrimeThresh (Hz)
 			pt_SF: 5, // SF_PrimeThresh
@@ -58,7 +70,7 @@ var vad = (function() {
 		this.log_i = 0;
 		this.log_limit = 100;
 	};
-	vad.prototype = {
+	Vad.prototype = {
 		triggerLog: function(limit) {
 			this.logging = true;
 			this.log_i = 0;
@@ -76,8 +88,7 @@ var vad = (function() {
 			// energy = SUM n=-inf->inf |x(n)|^2
 
 			var value, energy = 0;
-			var waveform = new Uint8Array(this.analyser.fftSize);
-			this.analyser.getByteTimeDomainData(waveform);
+			var waveform = this.options.probe.byteTimeDomainData;
 
 			for(var i = 0, iLen = waveform.length; i < iLen; i++) {
 				value = (waveform[i] - 128) / 128;
@@ -92,8 +103,7 @@ var vad = (function() {
 		getEnergyB: function() {
 
 			var value, energy = 0;
-			var fft = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(fft);
+			var fft = this.options.probe.byteFrequencyData;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				// value = fft[i] / 255;
@@ -108,8 +118,7 @@ var vad = (function() {
 		getEnergyC: function() {
 
 			var value, energy = 0;
-			var fft = new Float32Array(this.analyser.frequencyBinCount);
-			this.analyser.getFloatFrequencyData(fft);
+			var fft = this.options.probe.floatFrequencyData;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				value = Math.pow(10, fft[i] / 10);
@@ -127,8 +136,7 @@ var vad = (function() {
 		getEnergyD: function() {
 
 			var value, energy = 0;
-			var fft = new Float32Array(this.analyser.frequencyBinCount);
-			this.analyser.getFloatFrequencyData(fft);
+			var fft = this.options.probe.floatFrequencyData;
 
 			// approx 200 to 2k
 
@@ -175,10 +183,9 @@ var vad = (function() {
 		},
 		getFrequency: function() {
 			var dominantBin = 0, maxBin = 0;
-			var binHz = this.options.sampleRate / this.analyser.fftSize;
+			var binHz = this.options.sampleRate / this.options.probe.analyser.fftSize;
 
-			var fft = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(fft);
+			var fft = this.options.probe.byteFrequencyData;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				if(fft[i] > maxBin) {
@@ -199,11 +206,7 @@ var vad = (function() {
 			var bin;
 			var empty = 0;
 
-			var fft = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(fft);
-
-			// var fft = new Float32Array(this.analyser.frequencyBinCount);
-			// this.analyser.getFloatFrequencyData(fft);
+			var fft = this.options.probe.byteFrequencyData;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				bin = (fft[i] + 1) / 256; // So it is never zero
@@ -295,5 +298,5 @@ var vad = (function() {
 			}
 		}
 	};
-	return vad;
-}());
+	return Vad;
+}(window.PM));

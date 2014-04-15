@@ -98,6 +98,7 @@ span.module {
 		var microphone = PM.context.createMediaStreamSource(stream);
 
 		myMicrophoneProbe = PM.Probe({
+			id: 'mic',
 			input: microphone, // Pass in the input Node. [Requires the connect() method.]
 			onaudioprocess: function(event) {
 				graph_spectrum_mic.draw(this.byteFrequencyData);
@@ -122,7 +123,24 @@ span.module {
 			}
 		});
 
-		myVad = new vad(myMicrophoneProbe.analyser);
+		myVad = new Vad({
+			probe: myMicrophoneProbe
+		});
+
+		PM.listen('probeupdate', function(data) {
+			if(data.id === 'mic') {
+				graph_energy.draw([
+					myVad.getEnergy(),
+					myVad.getEnergyB(),
+					myVad.getEnergyC(),
+					255e8 * myVad.getEnergyD(),
+					255e8 * myVad.energyMonitor(),
+					255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
+					-25.5*myVad.getSFM(),
+					255*myVad.iterate()
+				]);
+			}
+		});
 	}
 
 	function logError(error) {
@@ -235,7 +253,7 @@ span.module {
 		for(var i = 0; i < options.length; i++) {
 			if(options[i].checked === true) {
 				value = options[i].value;
-				console.log('getRadioValue: value = "' + value + '"');
+				// console.log('getRadioValue: value = "' + value + '"');
 			}
 		}
 		return value;

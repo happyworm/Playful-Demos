@@ -13,7 +13,7 @@
 
 (function(PM) {
 
-	var DEBUG = true;
+	var DEBUG = false;
 
 	var Story = function(options) {
 		this.init(options);
