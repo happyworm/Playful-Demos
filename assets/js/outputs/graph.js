@@ -36,14 +36,15 @@
 					height: 255
 				},
 				chart: {
+					type: 'bar',
 					pitch: 5,
 					width: 3
 				},
 				gradient: [
-					[1,'#000000'],
-					[0.75,'#00cc00'],
-					[0.5,'#cccc00'],
-					[0.1,'#ff0000']
+					[1,'#336633'],
+					[0.75,'#33cc33'],
+					[0.5,'#cccc33'],
+					[0.1,'#ff3333']
 				]
 			};
 			// Read in instancing options.
@@ -95,15 +96,55 @@
 				// set the fill style
 				this.ctx.fillStyle = this.gradient;
 
-				for(var i = 0, iLen = array.length; i < iLen; i++ ){
-					var value = array[i];
-					this.ctx.fillRect(
-						i * this.options.chart.pitch,
-						this.options.canvas.height - value,
-						this.options.chart.width,
-						value
-					);
+				if(this.options.chart.type === 'bar') {
+
+					for(var i = 0, iLen = array.length; i < iLen; i++ ){
+						var value = array[i];
+						this.ctx.fillRect(
+							i * this.options.chart.pitch,
+							this.options.canvas.height - value,
+							this.options.chart.width,
+							value
+						);
+					}
+
+				} else {
+
+					this.ctx.beginPath();
+					this.ctx.moveTo(0, this.options.canvas.height);
+
+					for(var i = 0, iLen = array.length; i < iLen; i++ ){
+						var value = array[i];
+						this.ctx.lineTo(
+							(i * this.options.chart.pitch) + (this.options.chart.pitch / 2),
+							this.options.canvas.height - value
+						);
+					}
+					// Correct the end point
+					this.ctx.lineTo(array.length * this.options.chart.pitch, this.options.canvas.height);
+
+					this.ctx.closePath();
+					this.ctx.fill();
+
+					this.ctx.strokeStyle = this.gradient;
+					// this.ctx.strokeStyle = '#ccc';
+					this.ctx.stroke();
 				}
+
+
+/*
+				var context = this.ctx;
+				for (var x = 0.5; x < 500; x += 10) {
+					context.moveTo(x, 0);
+					context.lineTo(x, 375);
+				}
+				for (var y = 0.5; y < 375; y += 10) {
+					context.moveTo(0, y);
+					context.lineTo(500, y);
+				}
+				context.strokeStyle = "#eee";
+				context.stroke();
+*/
 			}
 		}
 	}
