@@ -37,6 +37,7 @@
 				},
 				chart: {
 					type: 'bar',
+					curve: false,
 					pitch: 5,
 					width: 3
 				},
@@ -113,12 +114,31 @@
 					this.ctx.beginPath();
 					this.ctx.moveTo(0, this.options.canvas.height);
 
-					for(var i = 0, iLen = array.length; i < iLen; i++ ){
-						var value = array[i];
-						this.ctx.lineTo(
-							(i * this.options.chart.pitch) + (this.options.chart.pitch / 2),
-							this.options.canvas.height - value
-						);
+					if(this.options.chart.curve) {
+
+						for(var i = 0, iLen = array.length; i < iLen; i++ ){
+
+							var middle = (this.options.chart.pitch / 2);
+							var column = (i * this.options.chart.pitch);
+
+							this.ctx.bezierCurveTo(
+								column,
+								this.options.canvas.height - (i > 0 ? array[i-1] : 0),
+								column,
+								this.options.canvas.height - array[i],
+								column + middle,
+								this.options.canvas.height - array[i]
+							);
+
+						}
+					} else {
+						for(var i = 0, iLen = array.length; i < iLen; i++ ){
+							var value = array[i];
+							this.ctx.lineTo(
+								(i * this.options.chart.pitch) + (this.options.chart.pitch / 2),
+								this.options.canvas.height - value
+							);
+						}
 					}
 					// Correct the end point
 					this.ctx.lineTo(array.length * this.options.chart.pitch, this.options.canvas.height);
