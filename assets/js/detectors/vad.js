@@ -11,7 +11,8 @@
  * Date: 15th April 2014
  */
 
-var Vad = (function(PM) {
+// var Vad =
+(function(PM) {
 
 	var DEBUG = true;
 

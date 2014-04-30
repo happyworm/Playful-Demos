@@ -36,8 +36,9 @@
 				context: null,
 				input: null, // The Node to connect to the input. Usually an AudioNode, but can be any object. [Rule: It must have the connect() method.]
 				output: null,
-				fftSize: 512,
 				scriptSize: 512,
+				fftSize: 512,
+				smoothingTimeConstant: 0.99,
 				onaudioprocess: null
 			};
 			// Read in instancing options.
@@ -56,7 +57,7 @@
 
 				// setup an analyzer
 				this.inputNode = this.analyser = this.context.createAnalyser();
-				this.analyser.smoothingTimeConstant = 0.99; // 0.3;
+				this.analyser.smoothingTimeConstant = this.options.smoothingTimeConstant; // 0.99;
 				this.analyser.fftSize = this.options.fftSize;
 
 				// analyser.maxDecibels = -20;

@@ -129,18 +129,24 @@ span.module {
 			}
 		});
 
-		myVad = new Vad({
+		myVad = new PM.Vad({
 			probe: myMicrophoneProbe
 		});
 
 		PM.listen('probeupdate', function(data) {
 			if(data.id === 'mic') {
 				myVad.update();
+				myStoryVad.update();
 				graph_energy.draw([
 					255e8 * myVad.getEnergy(),
 					255e8 * myVad.energyMonitor(),
 					32*(myVad.getSFM() + 35),
-					255*myVad.iterate()
+					255*myVad.iterate(),
+					255, 0, 255,
+					255e8 * myStoryVad.getEnergy(),
+					255e8 * myStoryVad.energyMonitor(),
+					32*(myStoryVad.getSFM() + 35),
+					255*myStoryVad.iterate()
 				]);
 			}
 		});
@@ -233,6 +239,26 @@ span.module {
 		context: context
 	});
 
+	var myStoryProbe = PM.Probe({
+		id: 'story',
+		// input: myStory, // Pass in the input Node. [Requires the connect() method.]
+		input: myStory.waapi.story, // Pass in the input Node. [Requires the connect() method.]
+		scriptSize: 2048, // 512,
+		fftSize: 512,
+		smoothingTimeConstant: 0.8,
+		onaudioprocess: function(event) {
+			// Executes within the context of the Probe instance.
+			var array = new Uint8Array(this.analyser.frequencyBinCount);
+			this.analyser.getByteFrequencyData(array);
+			graph_spectrum_story.draw(array);
+		}
+	});
+
+	// This var should be declared further up, due to its use in a handler
+	var myStoryVad = new PM.Vad({
+		probe: myStoryProbe
+	});
+
 	document.querySelector('#story-play').addEventListener('click', function() {
 		myStory.play(getTrack());
 	}, false);
@@ -267,16 +293,6 @@ span.module {
 		track = track ? track : undefined;
 		return track;
 	}
-
-	var myStoryProbe = PM.Probe({
-		input: myStory, // Pass in the input Node. [Requires the connect() method.]
-		onaudioprocess: function(event) {
-			// Executes within the context of the Probe instance.
-			var array = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(array);
-			graph_spectrum_story.draw(array);
-		}
-	});
 
 	var myMsg = PM.MessageEmulator({
 		id: 'gui',
