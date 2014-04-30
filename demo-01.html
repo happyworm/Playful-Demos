@@ -20,6 +20,17 @@ span.module {
 	font-weight: bold;
 	cursor: pointer;
 }
+canvas.energy {
+	clear:left;
+	float:left;
+	display: block;
+	border: 1px solid #000;
+}
+canvas.spectrum {
+	float:left;
+	display: block;
+	border: 1px solid #000;
+}
 </style>
 </head>
 <body>
@@ -46,9 +57,11 @@ span.module {
 		<button id="log">VAD log</button>
 	</p>
 
-	<canvas id="spectrum-story" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
-	<canvas id="spectrum-mic" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
-	<canvas id="energy" width="1275" height="255" style="display: block; border: 1px solid #000;"></canvas>
+	<canvas id="energy-story" class="energy" width="25" height="255"></canvas>
+	<canvas id="spectrum-story" class="spectrum" width="1275" height="255"></canvas>
+
+	<canvas id="energy-mic" class="energy" width="25" height="255"></canvas>
+	<canvas id="spectrum-mic" class="spectrum" width="1275" height="255"></canvas>
 
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
@@ -88,10 +101,17 @@ span.module {
 	});
 
 	// Use Graph module to display the energy
-	var graph_energy = PM.Graph({
+	var graph_energy_story = PM.Graph({
 		canvas: {
-			id: 'energy',
-			width: 1275,
+			id: 'energy-story',
+			width: 25,
+			height: 255
+		}
+	});
+	var graph_energy_mic = PM.Graph({
+		canvas: {
+			id: 'energy-mic',
+			width: 25,
 			height: 255
 		}
 	});
@@ -136,21 +156,27 @@ span.module {
 		PM.listen('probeupdate', function(data) {
 			if(data.id === 'mic') {
 				myVad.update();
-				myStoryVad.update();
-				graph_energy.draw([
+				graph_energy_mic.draw([
 					255e8 * myVad.getEnergy(),
 					255e8 * myVad.energyMonitor(),
 					32*(myVad.getSFM() + 35),
-					255*myVad.iterate(),
-					255, 0, 255,
-					255e8 * myStoryVad.getEnergy(),
-					255e8 * myStoryVad.energyMonitor(),
-					32*(myStoryVad.getSFM() + 35),
-					255*myStoryVad.iterate()
+					255*myVad.iterate()
 				]);
 			}
 		});
 	}
+
+	PM.listen('probeupdate', function(data) {
+		if(data.id === 'story') {
+			myStoryVad.update();
+			graph_energy_story.draw([
+				255e8 * myStoryVad.getEnergy(),
+				255e8 * myStoryVad.energyMonitor(),
+				32*(myStoryVad.getSFM() + 35),
+				255*myStoryVad.iterate()
+			]);
+		}
+	});
 
 	function logError(error) {
 		console.log(error.name + ": " + error.message);
@@ -172,7 +198,8 @@ span.module {
 	var logBtn = document.querySelector('#log');
 	if(logBtn) {
 		logBtn.addEventListener('click', function() {
-			myVad.triggerLog();
+			// myVad.triggerLog();
+			myStoryVad.triggerLog();
 		}, false);
 	}
 
