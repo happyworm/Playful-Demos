@@ -34,9 +34,7 @@
 			this.options = {
 				id: '', // The id of messages being broadcast.
 				probe: null, // A Probe instance.
-				context: null,
-				pt_E: 40, // Energy_PrimeThresh
-				pt_SF: 5 // SF_PrimeThresh
+				context: null
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -74,25 +72,16 @@
 
 			this.ready = {};
 
-
-			// Setup the initial thresholds
-			this.t_E = this.options.pt_E;
-			this.t_SF = this.options.pt_SF;
-			// Init the min values
-			this.min_E = 0;
-			this.min_SF = 0;
-			// The min value sums
-			this.sum_E = 0;
-			this.sum_SF = 0;
-			// The min value sum length
-			this.sum_counts = 30;
-			// Counters
-			this.silence_count = 0;
-			this.speech_count = 0;
-			this.initial_count = 0;
-
 			// Energy detector props
-			this.energy_threshold = 1e-8;
+			this.energy_offset = 1e-8;
+			this.energy_threshold_ratio = 0.1;
+			this.energy_threshold = this.energy_offset * this.energy_threshold_ratio;
+
+			this.voiceTrend = 0;
+			this.voiceTrendMax = 10;
+			this.voiceTrendMin = -10;
+			this.voiceTrendSpeech = 5;
+			this.voiceTrendSilence = -5;
 
 			// Setup local storage of the Linear FFT data
 			this.floatFrequencyDataLinear = new Float32Array(this.options.probe.floatFrequencyData.length);
@@ -140,13 +129,16 @@
 
 			return energy;
 		},
+		// Obsolete... Will remove.
 		energyMonitor: function() {
 			var self = this;
 			var energy = this.getEnergy();
 			var detection = energy - this.energy_threshold;
-			var detected = false;
+
 			// var integration = energy / 0.000001; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
 			var integration = detection / 100; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+
+			var detected = false;
 			if(detection >= 0) {
 				detected = true;
 				// this.energy_threshold += integration;
@@ -176,6 +168,7 @@
 
 			return detection;
 		},
+		// No longer used
 		getSFM: function() {
 
 			var geometric = 0;
@@ -205,70 +198,78 @@
 
 			return SFM;
 		},
-		iterate: function() {
-
-			var votes = 0;
-
-			var msg = "";
-
-			// Assuming the first N frames are silence, and use them to work out the minimums.
-			if(this.initial_count < this.sum_counts) {
-				this.initial_count++;
-				this.sum_E += this.getEnergy();
-				this.sum_SF += this.getSFM();
-				return 0; // false; // still initializing.
-			} else if(this.initial_count === this.sum_counts) {
-				this.initial_count++;
-				this.min_E = this.sum_E / this.sum_counts;
-				this.min_SF = this.sum_SF / this.sum_counts;
-				// Set decision threshold.
-				this.t_E = this.options.pt_E * Math.log(this.min_E);
-			}
-
-			// Collect votes on speech detection
+		monitor: function() {
+			var self = this;
 			var energy = this.getEnergy();
-			var delta_E = energy - this.min_E;
-			if(delta_E >= this.t_E) {
-				votes++;
-				msg += " E";
-			}
-			var delta_SF = this.getSFM() - this.min_SF;
-			if(delta_SF >= this.t_SF) {
-				votes++;
-				msg += " SF";
+			var signal = energy - this.energy_offset;
+			// var detection = energy - this.energy_threshold;
+
+			// Think the pos and neg offsets need to be different... pos is twice offset, but neg is half offset... That sort of thing.
+
+			if(signal > this.energy_threshold) {
+				this.voiceTrend = (this.voiceTrend + 1 > this.voiceTrendMax) ? this.voiceTrendMax : this.voiceTrend + 1;
+			} else if(signal < -this.energy_threshold) {
+				this.voiceTrend = (this.voiceTrend - 1 < this.voiceTrendMin) ? this.voiceTrendMin : this.voiceTrend - 1;
+			} else {
+				// voiceTrend needs to get smaller... ?
+				console.log('erm');
 			}
 
-			// Record votes
-			if(votes > 1) {
-				// speech
-				this.silence_count = 0;
-				this.speech_count++;
-			} else {
-				// silence
-				this.silence_count++;
-				this.speech_count = 0;
-				// Update min energy
-				this.min_E = ((this.silence_count * this.min_E) + energy) / (this.silence_count + 1);
-				this.min_E = this.min_E < 1 ? 1 : this.min_E; // (MJP added) Limit the minimum energy to 1
-				this.t_E = this.options.pt_E * Math.log(this.min_E);
+			var speech = false, silence = false;
+			if(this.voiceTrend > this.voiceTrendSpeech) {
+				// Speech detected
+				speech = true;
+			} else if(this.voiceTrend < this.voiceTrendSilence) {
+				// Silence detected
+				silence = true;
+			}
+
+			// var integration = energy / 0.000001; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+			// var integration = detection / 100; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+			var integration = signal / 100; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+
+			// Idea?: The integration is affected by the voiceTrend magnitude? - Not sure. Not doing atm.
+
+			if(speech || silence) {
+				this.energy_offset += integration;
+				this.energy_offset = this.energy_offset < 0 ? 0 : this.energy_offset;
+				this.energy_threshold = this.energy_offset * this.energy_threshold_ratio;
+			}
+
+			if(speech) {
+				// Broadcast the message
+				if(PM) {
+					PM.broadcast("energy_jump", {
+						id: self.options.id,
+						target: self,
+						msg: 'Generated by: Vad'
+					});
+				}
+			}
+
+			if(silence) {
+				// Broadcast the message
+				if(PM) {
+					PM.broadcast("energy_fall", {
+						id: self.options.id,
+						target: self,
+						msg: 'Generated by: Vad'
+					});
+				}
 			}
 
 			this.log(
-				"votes: " + votes + "(" + msg + ")" +
-				" | speech: " + this.speech_count +
-				" | silence: " + this.silence_count +
-				" | t_E: " + this.t_E +
-				" | dE: " + delta_E +
-				" | E: " + energy +
-				" | t_SF: " + this.t_SF +
-				" | dSF: " + delta_SF
+				'e: ' + energy +
+				' | e_of: ' + this.energy_offset +
+				' | e_th: ' + this.energy_threshold +
+				' | signal: ' + signal +
+				' | int: ' + integration +
+				' | voiceTrend: ' + this.voiceTrend +
+				' | speech: ' + speech +
+				' | silence: ' + silence
 			);
 
-			if(this.speech_count > 5) {
-				return 1;
-			} else {
-				return 0;
-			}
+			return signal;
 		}
 	};
 	return Vad;

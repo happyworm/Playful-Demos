@@ -159,9 +159,10 @@ canvas.spectrum {
 				myVad.update();
 				graph_energy_mic.draw([
 					255e8 * myVad.getEnergy(),
-					255e8 * myVad.energyMonitor(),
-					32*(myVad.getSFM() + 35),
-					255*myVad.iterate()
+					// 255e8 * myVad.energyMonitor(),
+					255e8 * myVad.monitor(),
+					32*(myVad.getSFM() + 35)
+					// 255*myVad.iterate()
 				]);
 			}
 		});
@@ -172,9 +173,10 @@ canvas.spectrum {
 			myStoryVad.update();
 			graph_energy_story.draw([
 				255e8 * myStoryVad.getEnergy(),
-				255e8 * myStoryVad.energyMonitor(),
-				32*(myStoryVad.getSFM() + 35),
-				255*myStoryVad.iterate()
+				// 255e8 * myStoryVad.energyMonitor(),
+				255e8 * myStoryVad.monitor(),
+				32*(myStoryVad.getSFM() + 35)
+				// 255*myStoryVad.iterate()
 			]);
 		}
 	});
@@ -199,8 +201,8 @@ canvas.spectrum {
 	var logBtn = document.querySelector('#log');
 	if(logBtn) {
 		logBtn.addEventListener('click', function() {
-			// myVad.triggerLog();
-			myStoryVad.triggerLog();
+			myVad.triggerLog();
+			// myStoryVad.triggerLog();
 		}, false);
 	}
 
