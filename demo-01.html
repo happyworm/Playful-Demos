@@ -298,13 +298,13 @@ canvas.spectrum {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
 			body.className = '';
-			console.log('mic: energy_fall');
+			console.log('mic: energy_fall | ' + data.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
 			body.className = 'speech';
-			console.log('mic: energy_jump');
+			console.log('mic: energy_jump | ' + data.voiceTrend);
 		}
 	});
 
@@ -348,6 +348,7 @@ canvas.spectrum {
 		className: 'module',
 		title: 'Generate Message Type: ',
 		type: ['bananas', 'apples']
+		// type: ['energy_jump', 'energy_fall']
 	});
 
 	PM.listen('bananas', function() {
