@@ -72,6 +72,9 @@
 				}
 			}
 
+			this.ready = {};
+
+
 			// Setup the initial thresholds
 			this.t_E = this.options.pt_E;
 			this.t_SF = this.options.pt_SF;
@@ -118,8 +121,13 @@
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				this.floatFrequencyDataLinear[i] = Math.pow(10, fft[i] / 10);
 			}
+			this.ready = {};
 		},
 		getEnergy: function() {
+
+			if(this.ready.energy) {
+				return this.energy;
+			}
 
 			var energy = 0;
 			var fft = this.floatFrequencyDataLinear;
@@ -127,6 +135,8 @@
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
 				energy += this.combFilter[i] * fft[i] * fft[i];
 			}
+
+			this.energy = energy;
 
 			return energy;
 		},
