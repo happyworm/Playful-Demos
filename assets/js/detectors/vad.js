@@ -28,50 +28,77 @@
 		};
 	}
 
-	var Vad = function(options) {
-		// The default options
-		this.options = {
-			id: '', // The id of messages being broadcast.
-			probe: null, // A Probe instance.
-			pt_E: 40, // Energy_PrimeThresh
-			pt_SF: 5, // SF_PrimeThresh
-			// fftSize: 512,
-			sampleRate: 48000
-		};
-		// Read in instancing options.
-		for(var option in options) {
-			if(options.hasOwnProperty(option)) {
-				this.options[option] = options[option];
-			}
-		}
-		// Setup the initial thresholds
-		this.t_E = this.options.pt_E;
-		this.t_SF = this.options.pt_SF;
-		// Init the min values
-		this.min_E = 0;
-		this.min_SF = 0;
-		// The min value sums
-		this.sum_E = 0;
-		this.sum_SF = 0;
-		// The min value sum length
-		this.sum_counts = 30;
-		// Counters
-		this.silence_count = 0;
-		this.speech_count = 0;
-		this.initial_count = 0;
-
-		// Energy detector props
-		this.energy_threshold = 1e-8;
-
-		// Setup local storage of the Linear FFT data
-		this.floatFrequencyDataLinear = new Float32Array(this.options.probe.floatFrequencyData.length);
-
-		// log stuff
-		this.logging = false;
-		this.log_i = 0;
-		this.log_limit = 100;
-	};
 	Vad.prototype = {
+		init: function(options) {
+			// The default options
+			this.options = {
+				id: '', // The id of messages being broadcast.
+				probe: null, // A Probe instance.
+				context: null,
+				pt_E: 40, // Energy_PrimeThresh
+				pt_SF: 5 // SF_PrimeThresh
+			};
+			// Read in instancing options.
+			for(var option in options) {
+				if(options.hasOwnProperty(option)) {
+					this.options[option] = options[option];
+				}
+			}
+
+			// The Web Audio API context
+			this.context = PM && PM.context ? PM.context : this.options.context;
+
+			// Calculate time relationships
+			this.hertzPerBin = this.context.sampleRate / this.options.probe.options.fftSize;
+			this.iterationFrequency = this.context.sampleRate / this.options.probe.options.scriptSize;
+			this.iterationPeriod = 1 / this.iterationFrequency;
+
+			if(DEBUG) console.log(
+				'Vad[' + this.options.id + ']' +
+				' | sampleRate: ' + this.context.sampleRate +
+				' | hertzPerBin: ' + this.hertzPerBin +
+				' | iterationFrequency: ' + this.iterationFrequency +
+				' | iterationPeriod: ' + this.iterationPeriod
+			);
+
+			this.combFilter = [];
+			for(var i = 0, iLen = this.options.probe.options.fftSize / 2; i < iLen; i++) {
+				if(i * this.hertzPerBin < 200) {
+					this.combFilter[i] = 0;
+				} else if(i * this.hertzPerBin < 2000) {
+					this.combFilter[i] = 1;
+				} else {
+					this.combFilter[i] = 0;
+				}
+			}
+
+			// Setup the initial thresholds
+			this.t_E = this.options.pt_E;
+			this.t_SF = this.options.pt_SF;
+			// Init the min values
+			this.min_E = 0;
+			this.min_SF = 0;
+			// The min value sums
+			this.sum_E = 0;
+			this.sum_SF = 0;
+			// The min value sum length
+			this.sum_counts = 30;
+			// Counters
+			this.silence_count = 0;
+			this.speech_count = 0;
+			this.initial_count = 0;
+
+			// Energy detector props
+			this.energy_threshold = 1e-8;
+
+			// Setup local storage of the Linear FFT data
+			this.floatFrequencyDataLinear = new Float32Array(this.options.probe.floatFrequencyData.length);
+
+			// log stuff
+			this.logging = false;
+			this.log_i = 0;
+			this.log_limit = 100;
+		},
 		triggerLog: function(limit) {
 			this.logging = true;
 			this.log_i = 0;
@@ -97,17 +124,9 @@
 			var energy = 0;
 			var fft = this.floatFrequencyDataLinear;
 
-			// approx 200 to 2k
-
-			for(var i = 2, iLen = fft.length; i < 20; i++) {
-				energy += fft[i] * fft[i];
+			for(var i = 0, iLen = fft.length; i < iLen; i++) {
+				energy += this.combFilter[i] * fft[i] * fft[i];
 			}
-
-			// energy = 255 * energy / (fft.length + 1);
-
-			// energy = 255e8 * energy;
-
-			// console.log('energy: ' + energy);
 
 			return energy;
 		},

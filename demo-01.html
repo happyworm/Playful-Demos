@@ -150,6 +150,7 @@ canvas.spectrum {
 		});
 
 		myVad = new PM.Vad({
+			id: 'mic',
 			probe: myMicrophoneProbe
 		});
 
@@ -283,6 +284,7 @@ canvas.spectrum {
 
 	// This var should be declared further up, due to its use in a handler
 	var myStoryVad = new PM.Vad({
+		id: 'story',
 		probe: myStoryProbe
 	});
 
