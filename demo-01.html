@@ -5,6 +5,9 @@
 <title>Perceptive Media: Playful Demos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <style>
+body.speech {
+	background-color: #fcc;
+}
 span.module {
 	background-color: #ccc;
 	border: 1px solid #666;
@@ -290,6 +293,21 @@ canvas.spectrum {
 		probe: myStoryProbe
 	});
 
+	var body = document.getElementsByTagName('body')[0];
+	// Looking at the mic for moment - easier to shout at mic when needed.
+	PM.listen('energy_fall', function(data) {
+		if(data.id === 'mic') {
+			body.className = '';
+			console.log('mic: energy_fall');
+		}
+	});
+	PM.listen('energy_jump', function(data) {
+		if(data.id === 'mic') {
+			body.className = 'speech';
+			console.log('mic: energy_jump');
+		}
+	});
+
 	document.querySelector('#story-play').addEventListener('click', function() {
 		myStory.play(getTrack());
 	}, false);
@@ -334,10 +352,10 @@ canvas.spectrum {
 
 	PM.listen('bananas', function() {
 		console.log('MessageEmulator: bananas');
-	})
+	});
 	PM.listen('apples', function() {
 		console.log('MessageEmulator: apples');
-	})
+	});
 
 </script>
 </body>

@@ -80,8 +80,8 @@
 			this.voiceTrend = 0;
 			this.voiceTrendMax = 10;
 			this.voiceTrendMin = -10;
-			this.voiceTrendSpeech = 5;
-			this.voiceTrendSilence = -5;
+			this.voiceTrendStart = 5;
+			this.voiceTrendEnd = -5;
 
 			// Setup local storage of the Linear FFT data
 			this.floatFrequencyDataLinear = new Float32Array(this.options.probe.floatFrequencyData.length);
@@ -212,16 +212,20 @@
 				this.voiceTrend = (this.voiceTrend - 1 < this.voiceTrendMin) ? this.voiceTrendMin : this.voiceTrend - 1;
 			} else {
 				// voiceTrend needs to get smaller... ?
-				console.log('erm');
+				if(this.voiceTrend > 0) {
+					this.voiceTrend--;
+				} else if(this.voiceTrend < 0) {
+					this.voiceTrend++;
+				}
 			}
 
-			var speech = false, silence = false;
-			if(this.voiceTrend > this.voiceTrendSpeech) {
-				// Speech detected
-				speech = true;
-			} else if(this.voiceTrend < this.voiceTrendSilence) {
-				// Silence detected
-				silence = true;
+			var start = false, end = false;
+			if(this.voiceTrend > this.voiceTrendStart) {
+				// Start of speech detected
+				start = true;
+			} else if(this.voiceTrend < this.voiceTrendEnd) {
+				// End of speech detected
+				end = true;
 			}
 
 			// var integration = energy / 0.000001; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
@@ -230,13 +234,13 @@
 
 			// Idea?: The integration is affected by the voiceTrend magnitude? - Not sure. Not doing atm.
 
-			if(speech || silence) {
+			if(start || end) {
 				this.energy_offset += integration;
 				this.energy_offset = this.energy_offset < 0 ? 0 : this.energy_offset;
 				this.energy_threshold = this.energy_offset * this.energy_threshold_ratio;
 			}
 
-			if(speech) {
+			if(start) {
 				// Broadcast the message
 				if(PM) {
 					PM.broadcast("energy_jump", {
@@ -247,7 +251,7 @@
 				}
 			}
 
-			if(silence) {
+			if(end) {
 				// Broadcast the message
 				if(PM) {
 					PM.broadcast("energy_fall", {
@@ -265,8 +269,8 @@
 				' | signal: ' + signal +
 				' | int: ' + integration +
 				' | voiceTrend: ' + this.voiceTrend +
-				' | speech: ' + speech +
-				' | silence: ' + silence
+				' | start: ' + start +
+				' | end: ' + end
 			);
 
 			return signal;
