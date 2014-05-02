@@ -5,9 +5,6 @@
 <title>Perceptive Media: Playful Demos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <style>
-body.speech {
-	background-color: #fcc;
-}
 span.module {
 	background-color: #ccc;
 	border: 1px solid #666;
@@ -23,16 +20,48 @@ span.module {
 	font-weight: bold;
 	cursor: pointer;
 }
+div.details {
+	width: 1324px;
+	margin: 0 0 4px 0;
+	padding: 10px 10px 10px 0;
+	background-color: #eee;
+	border: 1px solid #ccc;
+}
+div.speech {
+	background-color: #fcc;
+	border: 1px solid #c99;
+}
 canvas.energy {
-	clear:left;
 	float:left;
 	display: block;
-	border: 1px solid #000;
+	border: 1px solid #999;
 }
 canvas.spectrum {
 	float:left;
 	display: block;
-	border: 1px solid #000;
+	border: 1px solid #999;
+}
+div.clearboth {
+	clear: both;
+}
+div.title {
+	float:left;
+	color:#333;
+	writing-mode:tb-rl;
+	-webkit-transform:rotate(90deg);
+	-moz-transform:rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+	white-space:nowrap;
+	display:block;
+	bottom:0;
+	width:20px;
+	height:20px;
+	font-family: ‘Trebuchet MS’, Helvetica, sans-serif;
+	font-size:14px;
+	line-height:18px;
+	font-weight:normal;
+	text-shadow: 0px 0px 1px #333;
 }
 </style>
 </head>
@@ -48,9 +77,9 @@ canvas.spectrum {
 			<button id="story-reset">reset</button>
 			<button id="story-previous">previous</button>
 			<button id="story-next">next</button>
-			<input type="radio" name="story-track" id="story-track-all" value="" checked />
+			<input type="radio" name="story-track" id="story-track-all" value="" />
 			<label for="story-track-all">ALL</label>
-			<input type="radio" name="story-track" id="story-track-story" value="story" />
+			<input type="radio" name="story-track" id="story-track-story" value="story" checked />
 			<label for="story-track-story">story</label>
 			<input type="radio" name="story-track" id="story-track-bgm" value="bgm" />
 			<label for="story-track-bgm">bgm</label>
@@ -60,11 +89,19 @@ canvas.spectrum {
 		<button id="log">VAD log</button>
 	</p>
 
-	<canvas id="energy-story" class="energy" width="25" height="255"></canvas>
-	<canvas id="spectrum-story" class="spectrum" width="1275" height="255"></canvas>
+	<div id="story-details" class="details">
+		<div class="title">Story</div>
+		<canvas id="energy-story" class="energy" width="25" height="255"></canvas>
+		<canvas id="spectrum-story" class="spectrum" width="1275" height="255"></canvas>
+		<div class="clearboth"></div>
+	</div>
 
-	<canvas id="energy-mic" class="energy" width="25" height="255"></canvas>
-	<canvas id="spectrum-mic" class="spectrum" width="1275" height="255"></canvas>
+	<div id="mic-details" class="details">
+		<div class="title">Mic</div>
+		<canvas id="energy-mic" class="energy" width="25" height="255"></canvas>
+		<canvas id="spectrum-mic" class="spectrum" width="1275" height="255"></canvas>
+		<div class="clearboth"></div>
+	</div>
 
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
@@ -279,9 +316,9 @@ canvas.spectrum {
 		id: 'story',
 		// input: myStory, // Pass in the input Node. [Requires the connect() method.]
 		input: myStory.waapi.story, // Pass in the input Node. [Requires the connect() method.]
-		scriptSize: 2048, // 512,
-		fftSize: 512,
-		smoothingTimeConstant: 0.8,
+		// scriptSize: 2048, // 512,
+		// fftSize: 512,
+		// smoothingTimeConstant: 0.8,
 		onaudioprocess: function(event) {
 			// Executes within the context of the Probe instance.
 			var array = new Uint8Array(this.analyser.frequencyBinCount);
@@ -296,20 +333,35 @@ canvas.spectrum {
 		probe: myStoryProbe
 	});
 
-	var body = document.getElementsByTagName('body')[0];
-	// Looking at the mic for moment - easier to shout at mic when needed.
+	var mic_details = document.getElementById('mic-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
 		// if(data.id === 'story') {
-			body.className = '';
+			// mic_details.className = '';
+			PM.removeClass(mic_details, 'speech');
 			console.log('mic: energy_fall | ' + data.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
 		// if(data.id === 'story') {
-			body.className = 'speech';
+			// mic_details.className = 'speech';
+			PM.addClass(mic_details, 'speech');
 			console.log('mic: energy_jump | ' + data.voiceTrend);
+		}
+	});
+
+	var story_details = document.getElementById('story-details');
+	PM.listen('energy_fall', function(data) {
+		if(data.id === 'story') {
+			PM.removeClass(story_details, 'speech');
+			console.log('story: energy_fall | ' + data.voiceTrend);
+		}
+	});
+	PM.listen('energy_jump', function(data) {
+		if(data.id === 'story') {
+			PM.addClass(story_details, 'speech');
+			console.log('story: energy_jump | ' + data.voiceTrend);
 		}
 	});
 

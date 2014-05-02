@@ -37,6 +37,35 @@
 			if(typeof callback === 'function') {
 				callback();
 			}
+		},
+
+		hasClass: function(e, c) {
+			if ( !e ) return false;
+
+			var re = new RegExp("(^|\\s)" + c + "(\\s|$)");
+			return re.test(e.className);
+		},
+		addClass: function(e, c) {
+			if ( this.hasClass(e, c) ) {
+				return;
+			}
+
+			e.className += ' ' + c;
+		},
+		removeClass: function (e, c) {
+			if ( !this.hasClass(e, c) ) {
+				return;
+			}
+
+			var re = new RegExp("(^|\\s)" + c + "(\\s|$)", 'g');
+			e.className = e.className.replace(re, ' ').replace(/\s{2,}/g, ' ');
+		},
+		toggleClass: function (e, c) {
+			if ( this.hasClass(e, c) ) {
+				this.removeClass(e, c);
+			} else {
+				this.addClass(e, c);
+			}
 		}
 	};
 
