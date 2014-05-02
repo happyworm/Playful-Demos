@@ -239,7 +239,7 @@ div.title {
 		navigator.mozGetUserMedia({audio:true}, gotAudio, logError);
 	}
 
-	console.log("sample rate: " + context.sampleRate);
+	// console.log("sample rate: " + context.sampleRate);
 
 	var logBtn = document.querySelector('#log');
 	if(logBtn) {
@@ -339,7 +339,7 @@ div.title {
 		// if(data.id === 'story') {
 			// mic_details.className = '';
 			PM.removeClass(mic_details, 'speech');
-			console.log('mic: energy_fall | ' + data.voiceTrend);
+			// console.log('mic: energy_fall | ' + data.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
@@ -347,7 +347,7 @@ div.title {
 		// if(data.id === 'story') {
 			// mic_details.className = 'speech';
 			PM.addClass(mic_details, 'speech');
-			console.log('mic: energy_jump | ' + data.voiceTrend);
+			// console.log('mic: energy_jump | ' + data.voiceTrend);
 		}
 	});
 
@@ -355,13 +355,13 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			console.log('story: energy_fall | ' + data.voiceTrend);
+			// console.log('story: energy_fall | ' + data.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'story') {
 			PM.addClass(story_details, 'speech');
-			console.log('story: energy_jump | ' + data.voiceTrend);
+			// console.log('story: energy_jump | ' + data.voiceTrend);
 		}
 	});
 
