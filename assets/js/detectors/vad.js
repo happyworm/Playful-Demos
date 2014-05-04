@@ -39,6 +39,10 @@
 				energy_threshold_ratio_neg: 0.5, // Signal must be half the offset
 				// energy_integration: 100, // Offset change per iteration. ie., a 1/100th of the signal size
 				energy_integration: 1, // Size of integration change compared to the signal per second.
+				filter: [
+					{f: 200, v:0}, // 0 -> 200 is 0
+					{f: 2000, v:1} // 200 -> 2k is 1
+				],
 				context: null
 			};
 			// Read in instancing options.
@@ -63,17 +67,19 @@
 				' | iterationFrequency: ' + this.iterationFrequency +
 				' | iterationPeriod: ' + this.iterationPeriod
 			);
-
-			this.combFilter = [];
+/*
+			this.filter = [];
 			for(var i = 0, iLen = this.options.probe.options.fftSize / 2; i < iLen; i++) {
 				if(i * this.hertzPerBin < 200) {
-					this.combFilter[i] = 0;
+					this.filter[i] = 0;
 				} else if(i * this.hertzPerBin < 2000) {
-					this.combFilter[i] = 1;
+					this.filter[i] = 1;
 				} else {
-					this.combFilter[i] = 0;
+					this.filter[i] = 0;
 				}
 			}
+*/
+			this.setFilter(this.options.filter);
 
 			this.ready = {};
 
@@ -128,6 +134,18 @@
 				});
 			}
 		},
+		setFilter: function(shape) {
+			this.filter = [];
+			for(var i = 0, iLen = this.options.probe.options.fftSize / 2; i < iLen; i++) {
+				this.filter[i] = 0;
+				for(var j = 0, jLen = shape.length; j < jLen; j++) {
+					if(i * this.hertzPerBin < shape[j].f) {
+						this.filter[i] = shape[j].v;
+						break; // Exit j loop
+					}
+				}
+			}
+		},
 		getEnergy: function() {
 
 			if(this.ready.energy) {
@@ -138,7 +156,7 @@
 			var fft = this.floatFrequencyDataLinear;
 
 			for(var i = 0, iLen = fft.length; i < iLen; i++) {
-				energy += this.combFilter[i] * fft[i] * fft[i];
+				energy += this.filter[i] * fft[i] * fft[i];
 			}
 
 			this.energy = energy;

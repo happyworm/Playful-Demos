@@ -332,7 +332,9 @@ div.title {
 		id: 'story',
 		probe: myStoryProbe,
 		energy_threshold_ratio_pos: 1.5,
-		energy_threshold_ratio_neg: 0.75
+		energy_threshold_ratio_neg: 0.75,
+		energy_integration: 0.75,
+		filter: [{f: 100000, v:1}] // no filter
 	});
 
 	var mic_details = document.getElementById('mic-details');
