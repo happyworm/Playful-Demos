@@ -37,7 +37,8 @@
 				energy_offset: 1e-8, // The initial offset.
 				energy_threshold_ratio_pos: 2, // Signal must be twice the offset
 				energy_threshold_ratio_neg: 0.5, // Signal must be half the offset
-				energy_integration: 100, // Offset change per iteration. ie., a 1/100th of the signal size
+				// energy_integration: 100, // Offset change per iteration. ie., a 1/100th of the signal size
+				energy_integration: 1, // Size of integration change compared to the signal per second.
 				context: null
 			};
 			// Read in instancing options.
@@ -201,7 +202,8 @@
 				end = true;
 			}
 
-			var integration = signal / this.options.energy_integration; // The divisor should be the time period... And we could apply a multiplier, but the time should be proportional to the anaylyer
+			// Integration brings in the real-time aspect through the relationship with the frequency this functions is called.
+			var integration = signal * this.iterationPeriod * this.options.energy_integration;
 
 			// Idea?: The integration is affected by the voiceTrend magnitude? - Not sure. Not doing atm.
 
