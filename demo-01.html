@@ -330,38 +330,45 @@ div.title {
 	// This var should be declared further up, due to its use in a handler
 	var myStoryVad = new PM.Vad({
 		id: 'story',
-		probe: myStoryProbe
+		probe: myStoryProbe,
+		energy_threshold_ratio_pos: 1.5,
+		energy_threshold_ratio_neg: 0.75
 	});
 
 	var mic_details = document.getElementById('mic-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
-		// if(data.id === 'story') {
-			// mic_details.className = '';
 			PM.removeClass(mic_details, 'speech');
-			// console.log('mic: energy_fall | ' + data.voiceTrend);
+			// console.log('mic: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
-		// if(data.id === 'story') {
-			// mic_details.className = 'speech';
 			PM.addClass(mic_details, 'speech');
-			// console.log('mic: energy_jump | ' + data.voiceTrend);
+			// console.log('mic: energy_jump | ' + data.target.voiceTrend);
 		}
 	});
-
+/*
+	PM.listen('energy_update', function(data) {
+		if(data.id === 'mic') {
+			console.log(
+				'mic: energy_update | trend: ' + data.target.voiceTrend
+				// ' | energy: ' + data.target.energy
+			);
+		}
+	});
+*/
 	var story_details = document.getElementById('story-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			// console.log('story: energy_fall | ' + data.voiceTrend);
+			// console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'story') {
 			PM.addClass(story_details, 'speech');
-			// console.log('story: energy_jump | ' + data.voiceTrend);
+			// console.log('story: energy_jump | ' + data.target.voiceTrend);
 		}
 	});
 
