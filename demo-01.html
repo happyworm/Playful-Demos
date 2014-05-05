@@ -5,6 +5,10 @@
 <title>Perceptive Media: Playful Demos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <style>
+body {
+	font-family: 'Trebuchet MS', Helvetica, sans-serif;
+	font-size: 12px;
+}
 span.module {
 	background-color: #ccc;
 	border: 1px solid #666;
@@ -57,11 +61,14 @@ div.title {
 	bottom:0;
 	width:20px;
 	height:20px;
-	font-family: ‘Trebuchet MS’, Helvetica, sans-serif;
 	font-size:14px;
 	line-height:18px;
 	font-weight:normal;
 	text-shadow: 0px 0px 1px #333;
+}
+.note {
+	font-size: 0.8em;
+	color: #aaa;
 }
 </style>
 </head>
@@ -102,6 +109,11 @@ div.title {
 		<canvas id="spectrum-mic" class="spectrum" width="1275" height="255"></canvas>
 		<div class="clearboth"></div>
 	</div>
+
+	<p>
+		Please wear headphones for best results.
+		<span class="note">Otherwise, the story audio can interfere with the mic VAD.</span>
+	</p>
 
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
@@ -337,15 +349,30 @@ div.title {
 		filter: [{f: 100000, v:1}] // no filter
 	});
 
+	var speaking = false, spoken = false, waiting = false, waitingDelayId;
 	var mic_details = document.getElementById('mic-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
+
+			speaking = false;
+
+			if(waiting) {
+				clearTimeout(waitingDelayId);
+				waitingDelayId = setTimeout(function() {
+					waiting = false;
+					myStory.play('story');
+				}, 3000);
+			}
+
 			PM.removeClass(mic_details, 'speech');
 			console.log('mic: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
+			speaking = true;
+			spoken = true;
+			clearTimeout(waitingDelayId); // Clear so that the following fall can deal with it after VAD ends.
 			PM.addClass(mic_details, 'speech');
 			console.log('mic: energy_jump | ' + data.target.voiceTrend);
 		}
@@ -364,13 +391,28 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			// console.log('story: energy_fall | ' + data.target.voiceTrend);
+			if(spoken) {
+				spoken = false; // Capture flag
+				waiting = true;
+				myStory.pause('story');
+
+				if(speaking) {
+					// The mic should deal with it, but may want a timeout to avoid locked in a speaking state.
+				} else {
+					clearTimeout(waitingDelayId);
+					waitingDelayId = setTimeout(function() {
+						waiting = false;
+						myStory.play('story');
+					}, 3000);
+				}
+			}
+			console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'story') {
 			PM.addClass(story_details, 'speech');
-			// console.log('story: energy_jump | ' + data.target.voiceTrend);
+			console.log('story: energy_jump | ' + data.target.voiceTrend);
 		}
 	});
 
