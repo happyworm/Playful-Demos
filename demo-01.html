@@ -22,6 +22,7 @@ span.module {
 	border: 2px solid #669;
 	border-radius: 5px;
 	font-weight: bold;
+	margin-left: 5px;
 	cursor: pointer;
 }
 div.details {
@@ -454,11 +455,12 @@ div.title {
 	}
 
 	var myMsg = PM.MessageEmulator({
-		id: 'gui',
+		target: '#gui',
+		id: 'mic',
 		className: 'module',
-		title: 'Generate Message Type: ',
-		type: ['bananas', 'apples']
-		// type: ['energy_jump', 'energy_fall']
+		title: 'Generate (mic) Message Type: ',
+		// type: ['bananas', 'apples']
+		type: ['energy_jump', 'energy_fall']
 	});
 
 	PM.listen('bananas', function() {
