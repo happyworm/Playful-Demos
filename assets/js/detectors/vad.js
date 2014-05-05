@@ -67,21 +67,11 @@
 				' | iterationFrequency: ' + this.iterationFrequency +
 				' | iterationPeriod: ' + this.iterationPeriod
 			);
-/*
-			this.filter = [];
-			for(var i = 0, iLen = this.options.probe.options.fftSize / 2; i < iLen; i++) {
-				if(i * this.hertzPerBin < 200) {
-					this.filter[i] = 0;
-				} else if(i * this.hertzPerBin < 2000) {
-					this.filter[i] = 1;
-				} else {
-					this.filter[i] = 0;
-				}
-			}
-*/
+
 			this.setFilter(this.options.filter);
 
 			this.ready = {};
+			this.vadState = false; // True when Voice Activity Detected
 
 			// Energy detector props
 			this.energy_offset = this.options.energy_offset;
@@ -160,6 +150,7 @@
 			}
 
 			this.energy = energy;
+			this.ready.energy = true;
 
 			return energy;
 		},
@@ -234,17 +225,15 @@
 			this.energy_threshold_pos = this.energy_offset * this.options.energy_threshold_ratio_pos;
 			this.energy_threshold_neg = this.energy_offset * this.options.energy_threshold_ratio_neg;
 
-
-			if(start) {
-				// Broadcast the message
+			// Broadcast the messages
+			if(start && !this.vadState) {
+				this.vadState = true;
 				this.broadcast("energy_jump");
 			}
-
-			if(end) {
-				// Broadcast the message
+			if(end && this.vadState) {
+				this.vadState = false;
 				this.broadcast("energy_fall");
 			}
-
 			this.broadcast("energy_update");
 
 			this.log(

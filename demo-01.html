@@ -341,13 +341,13 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
 			PM.removeClass(mic_details, 'speech');
-			// console.log('mic: energy_fall | ' + data.target.voiceTrend);
+			console.log('mic: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
 			PM.addClass(mic_details, 'speech');
-			// console.log('mic: energy_jump | ' + data.target.voiceTrend);
+			console.log('mic: energy_jump | ' + data.target.voiceTrend);
 		}
 	});
 /*
