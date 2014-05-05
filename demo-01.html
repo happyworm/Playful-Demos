@@ -262,6 +262,9 @@ div.title {
 		}, false);
 	}
 
+
+
+
 	var tangye = {
 		list: {}, // where the parsed results are stored.
 		// story: '', // default
@@ -316,6 +319,14 @@ div.title {
 			autoTrack['story'].push(autoAudio);
 		}
 	}
+
+
+
+
+	// Overwrite the story geneated above... This part needs cleaning up!
+	autoTrack.story = [{
+		mp3: 'assets/audio/tangye-micro-doc.mp3'
+	}];
 
 	var myStory = PM.Story({
 		wrapper: {
