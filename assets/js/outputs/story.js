@@ -57,6 +57,7 @@
 			this.index = {};
 			this.status = {};
 			this.waapi = {};
+			this.gain = {};
 			// Init tracks
 			this.initTracks();
 
@@ -97,7 +98,9 @@
 					// The Web Audio API source
 					if(this.context) {
 						this.waapi[track] = this.context.createMediaElementSource(this.audio[track]);
-						this.waapi[track].connect(this.context.destination); // Not sure we want to turn on the sound here.
+						this.gain[track] = this.context.createGain();
+						this.waapi[track].connect(this.gain[track]);
+						this.gain[track].connect(this.context.destination);
 					}
 
 					// Created event handlers for the track
@@ -196,7 +199,7 @@
 				}
 			}
 			this.audio[track].load();
-			this.audio[track].volume = typeof audio.vol === 'number' ? audio.vol : 1;
+			this.gain[track].gain.value = typeof audio.vol === 'number' ? audio.vol : 1;
 			if(DEBUG) console.log('setAudio: ' + track + ' | audio = %o', audio);
 		},
 		play: function(track) {
