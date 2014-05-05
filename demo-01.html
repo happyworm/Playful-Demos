@@ -371,7 +371,9 @@ div.title {
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
 			speaking = true;
-			spoken = true;
+			if(!waiting) {
+				spoken = true;
+			}
 			clearTimeout(waitingDelayId); // Clear so that the following fall can deal with it after VAD ends.
 			PM.addClass(mic_details, 'speech');
 			console.log('mic: energy_jump | ' + data.target.voiceTrend);
