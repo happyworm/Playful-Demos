@@ -36,7 +36,7 @@
 					height: 255
 				},
 				chart: {
-					type: 'bar',
+					type: 'bar', // bar, line
 					curve: false,
 					pitch: 5,
 					width: 3
