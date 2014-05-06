@@ -216,7 +216,8 @@
 
 			// Idea?: The integration is affected by the voiceTrend magnitude? - Not sure. Not doing atm.
 
-			if(integration > 0) {
+			// The !end limits the offset delta boost till after the end is detected.
+			if(integration > 0 || !end) {
 				this.energy_offset += integration;
 			} else {
 				this.energy_offset += integration * 10;
