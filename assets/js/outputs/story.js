@@ -148,9 +148,11 @@
 		nextAudio: function(track) {
 			if(typeof track === 'string') {
 				if(this.audio[track]) {
-					this.index[track]++;
-					this.index[track] = this.index[track] < this.options.track[track].length ? this.index[track] : 0;
-					this.setAudio(track, this.options.track[track][this.index[track]]);
+					if(this.options.track[track].length > 1) {
+						this.index[track]++;
+						this.index[track] = this.index[track] < this.options.track[track].length ? this.index[track] : 0;
+						this.setAudio(track, this.options.track[track][this.index[track]]);
+					}
 					this.play(track);
 					if(DEBUG) console.log('nextAudio: ' + track + '[' + this.index[track] + ']');
 				}
@@ -165,9 +167,11 @@
 		previousAudio: function(track) {
 			if(typeof track === 'string') {
 				if(this.audio[track]) {
-					this.index[track]--;
-					this.index[track] = this.index[track] < 0 ? this.options.track[track].length - 1 : this.index[track];
-					this.setAudio(track, this.options.track[track][this.index[track]]);
+					if(this.options.track[track].length > 1) {
+						this.index[track]--;
+						this.index[track] = this.index[track] < 0 ? this.options.track[track].length - 1 : this.index[track];
+						this.setAudio(track, this.options.track[track][this.index[track]]);
+					}
 					this.play(track);
 					if(DEBUG) console.log('previousAudio: ' + track + '[' + this.index[track] + ']');
 				}
