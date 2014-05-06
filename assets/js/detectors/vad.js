@@ -7,11 +7,10 @@
  * http://opensource.org/licenses/MIT
  *
  * Author: Mark J Panaghiston
- * Version: 0.0.2
- * Date: 1st May 2014
+ * Version: 0.1.0
+ * Date: 6th May 2014
  */
 
-// var Vad =
 (function(PM) {
 
 	var DEBUG = true;

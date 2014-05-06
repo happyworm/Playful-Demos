@@ -7,8 +7,8 @@
  * http://opensource.org/licenses/MIT
  *
  * Author: Mark J Panaghiston
- * Version: 0.0.1
- * Date: 14th April 2014
+ * Version: 0.1.0
+ * Date: 4th May 2014
  */
 
 (function(window) {
