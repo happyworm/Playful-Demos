@@ -474,10 +474,14 @@ div.title {
 	elemDisable.addEventListener('click', function() {
 		enabled = false;
 
+		// Reset decision flags
 		speaking = false;
 		spoken = false;
 		waiting = false;
 		clearTimeout(waitingDelayId);
+		// Clean up story display
+		PM.removeClass(story_details, 'speech');
+		graph_energy_story.draw([0,0,0]);
 
 		PM.removeClass(elemEnable, 'hidden');
 		PM.addClass(elemDisable, 'hidden');
