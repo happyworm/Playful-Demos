@@ -71,6 +71,9 @@ div.title {
 	font-size: 0.8em;
 	color: #aaa;
 }
+.hidden {
+	display: none;
+}
 </style>
 </head>
 <body>
@@ -78,6 +81,11 @@ div.title {
 	<div id="story"></div>
 
 	<p id="gui">
+		<span id="demo" class="module">
+			Demo:
+			<button id="demo-enable">enable</button>
+			<button id="demo-disable" class="hidden">disable</button>
+		</span>
 		<span id="story" class="module">
 			Story:
 			<button id="story-play">play</button>
@@ -123,6 +131,8 @@ div.title {
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
 <script type="text/javascript">
+
+	var enabled = false;
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
@@ -352,11 +362,13 @@ div.title {
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
-			speaking = true;
-			if(!waiting) {
-				spoken = true;
+			if(enabled) {
+				speaking = true;
+				if(!waiting) {
+					spoken = true;
+				}
+				clearTimeout(waitingDelayId); // Clear so that the following fall can deal with it after VAD ends.
 			}
-			clearTimeout(waitingDelayId); // Clear so that the following fall can deal with it after VAD ends.
 			PM.addClass(mic_details, 'speech');
 			console.log('mic: energy_jump | ' + data.target.voiceTrend);
 		}
@@ -450,6 +462,27 @@ div.title {
 	PM.listen('apples', function() {
 		console.log('MessageEmulator: apples');
 	});
+
+	var elemEnable = document.querySelector('#demo-enable');
+	var elemDisable = document.querySelector('#demo-disable');
+	elemEnable.addEventListener('click', function() {
+		enabled = true;
+		PM.addClass(elemEnable, 'hidden');
+		PM.removeClass(elemDisable, 'hidden');
+		myStory.play();
+	}, false);
+	elemDisable.addEventListener('click', function() {
+		enabled = false;
+
+		speaking = false;
+		spoken = false;
+		waiting = false;
+		clearTimeout(waitingDelayId);
+
+		PM.removeClass(elemEnable, 'hidden');
+		PM.addClass(elemDisable, 'hidden');
+		myStory.pause();
+	}, false);
 
 </script>
 </body>
