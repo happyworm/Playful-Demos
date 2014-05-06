@@ -124,13 +124,6 @@ div.title {
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
 <script type="text/javascript">
 
-	var context = new (window.AudioContext || window.webkitAudioContext)();
-/*
-	var microphone;
-	var analyser;
-	var javascriptNode;
-*/
-
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
 		canvas: {
@@ -181,24 +174,6 @@ div.title {
 			input: microphone, // Pass in the input Node. [Requires the connect() method.]
 			onaudioprocess: function(event) {
 				graph_spectrum_mic.draw(this.byteFrequencyData);
-
-/*
-				graph_energy.draw([
-					myVad.getEnergy(),
-					myVad.getEnergyB(),
-					myVad.getEnergyC(),
-					255e8 * myVad.getEnergyD(),
-					255e8 * myVad.energyMonitor(),
-					255*myVad.getFrequency()/12000, // Normalized the frequency so 12kHz is max on graph
-					-25.5*myVad.getSFM(),
-					255*myVad.iterate()
-				]);
-
-				graph_energy.draw([
-					255e8 * myVad.getEnergyD(),
-					255e8 * myVad.energyMonitor()
-				]);
-*/
 			}
 		});
 
@@ -212,10 +187,8 @@ div.title {
 				myVad.update();
 				graph_energy_mic.draw([
 					255e8 * myVad.getEnergy(),
-					// 255e8 * myVad.energyMonitor(),
 					255e8 * myVad.monitor(),
 					32*(myVad.getSFM() + 35)
-					// 255*myVad.iterate()
 				]);
 			}
 		});
@@ -226,14 +199,14 @@ div.title {
 
 			// Want to see if the story is playing, otherwise we get garbage into the system.
 
-			myStoryVad.update();
-			graph_energy_story.draw([
-				255e8 * myStoryVad.getEnergy(),
-				// 255e8 * myStoryVad.energyMonitor(),
-				255e8 * myStoryVad.monitor(),
-				32*(myStoryVad.getSFM() + 35)
-				// 255*myStoryVad.iterate()
-			]);
+			if(!myStory.status.story.paused) {
+				myStoryVad.update();
+				graph_energy_story.draw([
+					255e8 * myStoryVad.getEnergy(),
+					255e8 * myStoryVad.monitor(),
+					32*(myStoryVad.getSFM() + 35)
+				]);
+			}
 		}
 	});
 
@@ -332,8 +305,7 @@ div.title {
 		wrapper: {
 			id: 'story'
 		},
-		track: autoTrack,
-		context: context
+		track: autoTrack
 	});
 
 	var myStoryProbe = PM.Probe({
@@ -345,9 +317,7 @@ div.title {
 		// smoothingTimeConstant: 0.8,
 		onaudioprocess: function(event) {
 			// Executes within the context of the Probe instance.
-			var array = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(array);
-			graph_spectrum_story.draw(array);
+			graph_spectrum_story.draw(this.byteFrequencyData);
 		}
 	});
 
