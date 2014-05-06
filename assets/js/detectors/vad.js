@@ -239,7 +239,8 @@
 			this.log(
 				'e: ' + energy +
 				' | e_of: ' + this.energy_offset +
-				' | e_th: ' + this.energy_threshold +
+				' | e+_th: ' + this.energy_threshold_pos +
+				' | e-_th: ' + this.energy_threshold_neg +
 				' | signal: ' + signal +
 				' | int: ' + integration +
 				' | voiceTrend: ' + this.voiceTrend +
