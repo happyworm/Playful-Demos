@@ -1,17 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8" />
-	<title>Hyponic Reader</title> 
+<meta charset="utf-8" />
+<title>Hyponic Reader</title> 
+<style>
+.video {
+	position:relative;
+}
+.video .camera,
+.video .overlay {
+	position:absolute;
+	top:0;
+}
+</style>
 </head>
 <body>
+
+<p>See console log for pulse info</p>
+
+<div id="camera" class="video"></div>
 
 <script type="text/javascript" src="assets/js/lib/underscore-min.js"></script>
 <script type="text/javascript" src="assets/js/lib/headtrackr.min.js"></script>
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/detectors/pulse.js"></script>
 <script type="text/javascript">
-	var myPulse = PM.Pulse();
+	var myPulse = PM.Pulse({
+		target: '#camera'
+	});
+
+	PM.listen('pulseupdate', function(data) {
+		console.log('pulseupdate | bpm: ' + data.target.bpm + ' | heartrate: ' + data.target.heartrate);
+	});
 </script>
 </body>
 </html>
