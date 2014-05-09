@@ -20,6 +20,17 @@
 
 <div id="camera" class="video"></div>
 
+<div style="display:none">
+	<audio id="audio-countdown" autoplay loop>
+		<source src="assets/audio/hyponic/countdown.mp3" type="audio/mpeg">
+		<source src="assets/audio/hyponic/countdown.ogg" type="audio/ogg">
+	</audio>
+	<audio autoplay loop>
+		<source src="assets/audio/hyponic/music.mp3" type="audio/mpeg">
+		<source src="assets/audio/hyponic/music.ogg" type="audio/ogg">
+	</audio>
+</div>
+
 <script type="text/javascript" src="assets/js/lib/underscore-min.js"></script>
 <script type="text/javascript" src="assets/js/lib/headtrackr.min.js"></script>
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
@@ -29,8 +40,10 @@
 		target: '#camera'
 	});
 
+	var myCountdown = document.querySelector('#audio-countdown');
 	PM.listen('pulseupdate', function(data) {
 		console.log('pulseupdate | bpm: ' + data.target.bpm + ' | heartrate: ' + data.target.heartrate);
+		myCountdown.playbackRate = data.target.bpm / 60;
 	});
 </script>
 </body>
