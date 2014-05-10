@@ -29,15 +29,22 @@
 	</audio>
 </div>
 
+<div id="heart"></div>
+
 <div id="camera" class="video"></div>
 
 <script type="text/javascript" src="assets/js/lib/underscore-min.js"></script>
 <script type="text/javascript" src="assets/js/lib/headtrackr.min.js"></script>
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/detectors/pulse.js"></script>
+<script type="text/javascript" src="assets/js/outputs/heart.js"></script>
 <script type="text/javascript">
 	var myPulse = PM.Pulse({
 		target: '#camera'
+	});
+
+	var myHeart = PM.Heart({
+		target: '#heart'
 	});
 
 	var myCountdown = document.querySelector('#audio-countdown');
@@ -45,6 +52,8 @@
 		console.log('pulseupdate | bpm: ' + data.target.bpm + ' | heartrate: ' + data.target.heartrate);
 		myCountdown.playbackRate = data.target.bpm / 60;
 	});
+
+	myHeart.draw();
 </script>
 </body>
 </html>

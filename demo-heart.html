@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Heart Demo</title> 
+<style>
+body {
+	background-color:#ddd;
+}
+canvas {
+	border: 1px solid #aaa;
+	background-color:#fff;
+}
+</style>
+</head>
+<body>
+
+<div id="heart"></div>
+
+<script type="text/javascript" src="assets/js/core/pm.js"></script>
+<script type="text/javascript" src="assets/js/outputs/heart.js"></script>
+<script type="text/javascript">
+	var myHeart = PM.Heart({
+		target: '#heart'
+	});
+
+	myHeart.draw();
+</script>
+</body>
+</html>
