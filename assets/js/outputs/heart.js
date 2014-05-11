@@ -123,12 +123,15 @@
 			if(typeof rate !== 'undefined') {
 				this.heartrate = rate;
 			}
-			this.enabled = true;
-			this._beat();
+			if(!this.enabled) {
+				this.beatTime = new Date().getTime() / 1000;
+				this._heartrate = this.heartrate;
+				this._beat();
+				this.enabled = true;
+			}
 		},
 		_beat: function() {
 			var self = this;
-			cancelAnimationFrame(this._beatId);
 			this._beatId = requestAnimationFrame(function(t) {
 				self._beat();
 
