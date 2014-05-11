@@ -39,7 +39,6 @@ canvas {
 		var heartrate = rateInput.value*1;
 		myHeart.pulse(heartrate);
 		rateInfo.innerHTML = heartrate;
-		console.log('pulse');
 	}
 	rateInput.addEventListener('change', pulseHandler, false);
 	rateInput.addEventListener('mousedown', function() {
