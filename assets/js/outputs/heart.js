@@ -37,7 +37,12 @@
 				height: 500,
 				size: 200,
 				bloat: 0.25,
-				color: '#DA755C'
+				color: '#DA755C',
+				audioEnabled: false,
+				audio: {
+					mp3: 'assets/audio/heart/heartbeat.mp3',
+					ogg: 'assets/audio/heart/heartbeat.ogg'
+				}
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -58,6 +63,24 @@
 			this.canvas.setAttribute("height", this.options.height);
 			this.ctx = this.canvas.getContext("2d");
 			this.target.appendChild(this.canvas);
+
+			if(this.options.audioEnabled) {
+				this.audio = document.createElement("audio");
+				this.audio.controls = true;
+				this.source = {
+					mp3: document.createElement("source"),
+					ogg: document.createElement("source")
+				};
+				this.source.mp3.src = this.options.audio.mp3;
+				this.source.mp3.setAttribute('type', 'audio/mpeg');
+				this.source.ogg.src = this.options.audio.ogg;
+				this.source.ogg.setAttribute('type', 'audio/ogg');
+
+				this.audio.appendChild(this.source.mp3);
+				this.audio.appendChild(this.source.ogg);
+
+				this.target.appendChild(this.audio);
+			}
 
 			this.center = {
 				x: this.options.width / 2,
@@ -144,6 +167,12 @@
 					// Have completed 1 cycle
 					self.beatTime = now;
 					self._heartrate = self.heartrate;
+
+					if(self.options.audioEnabled) {
+						self.audio.currentTime = 0;
+						self.audio.playbackRate = self.heartrate / 60;
+						self.audio.play();
+					}
 				}
 
 				if(DEBUG) console.log('this.beatTime: ' + self.beatTime + ' | now: ' + now + ' | time: ' + time + ' | pump: ' + pump + ' | t: ' + t);
