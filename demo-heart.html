@@ -17,6 +17,11 @@ canvas {
 
 <div id="heart"></div>
 
+<label for="rate">Pulse: <span id="heartrate"></span></label>
+<input id="rate" type="range" min="30" max="120" step="10" />
+
+<!-- raf.js is a polyfill for requestAnimationFrame -->
+<script type="text/javascript" src="assets/js/lib/raf.js"></script>
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/outputs/heart.js"></script>
 <script type="text/javascript">
@@ -24,7 +29,15 @@ canvas {
 		target: '#heart'
 	});
 
-	myHeart.draw();
+	var rateInput = document.getElementById('rate');
+	var rateInfo = document.getElementById('heartrate');
+	rateInput.addEventListener('change', function() {
+		var heartrate = this.value*1;
+		myHeart.pulse(heartrate);
+		rateInfo.innerHTML = heartrate;
+	}, false);
+	rateInput.value = myHeart.heartrate;
+	rateInfo.innerHTML = myHeart.heartrate;
 </script>
 </body>
 </html>

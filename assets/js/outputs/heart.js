@@ -13,6 +13,8 @@
 
 (function(PM) {
 
+	var DEBUG = false;
+
 	var Heart = function(options) {
 		this.init(options);
 	};
@@ -34,7 +36,7 @@
 				width: 500,
 				height: 500,
 				size: 200,
-				bloat: 1.25,
+				bloat: 0.25,
 				color: '#DA755C'
 			};
 			// Read in instancing options.
@@ -45,8 +47,10 @@
 			}
 			this.target = typeof this.options.target === 'string' ? document.querySelector(this.options.target) : this.options.target;
 
-			this.heartrate = 60;
+			this.heartrate = this._heartrate = 60;
 			this.rotation = Math.PI * (135/180);
+			this.beatTime = 0; // A time reference to the start of the beat
+			this.enabled = false;
 
 			// Setup the canvas context
 			this.canvas = document.createElement("canvas");
@@ -67,6 +71,7 @@
 			);
 
 			this.setSize(this.options.size);
+			this.pulse();
 		},
 		setSize: function(size) {
 			if(typeof size !== 'undefined') {
@@ -114,16 +119,37 @@
 				this.ctx.rotate(-this.rotation);
 			}
 		},
-		beat: function(rate) {
-			if(typeof rate !== 'undefined') {
-				this.heartrate = rate;
-			}
-			this.draw(this.options.size * this.options.bloat);
-		},
 		pulse: function(rate) {
 			if(typeof rate !== 'undefined') {
 				this.heartrate = rate;
 			}
+			this.enabled = true;
+			this._beat();
+		},
+		_beat: function() {
+			var self = this;
+			cancelAnimationFrame(this._beatId);
+			this._beatId = requestAnimationFrame(function(t) {
+				self._beat();
+
+				var now = new Date().getTime() / 1000;
+				var time = (now - self.beatTime);
+				var omegaT = time * self._heartrate / 60;
+				var pump = -Math.cos( 2 * Math.PI * omegaT );
+
+				if(omegaT > 1) {
+					// Have completed 1 cycle
+					self.beatTime = now;
+					self._heartrate = self.heartrate;
+				}
+
+				if(DEBUG) console.log('this.beatTime: ' + self.beatTime + ' | now: ' + now + ' | time: ' + time + ' | pump: ' + pump + ' | t: ' + t);
+				self.draw(self.options.size * (1 + (pump * self.options.bloat)));
+			});
+		},
+		kill: function() {
+			cancelAnimationFrame(this._beatId);
+			this.enabled = false;
 		}
 	}
 }(window.PM));
