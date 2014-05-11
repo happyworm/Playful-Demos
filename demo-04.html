@@ -44,16 +44,18 @@
 	});
 
 	var myHeart = PM.Heart({
-		target: '#heart'
+		target: '#heart',
+		width: 100,
+		height: 100,
+		size: 25
 	});
 
 	var myCountdown = document.querySelector('#audio-countdown');
 	PM.listen('pulseupdate', function(data) {
 		console.log('pulseupdate | bpm: ' + data.target.bpm + ' | heartrate: ' + data.target.heartrate);
 		myCountdown.playbackRate = data.target.bpm / 60;
+		myHeart.pulse(data.target.bpm);
 	});
-
-	myHeart.draw();
 </script>
 </body>
 </html>
