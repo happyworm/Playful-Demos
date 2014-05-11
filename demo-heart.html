@@ -11,6 +11,19 @@ canvas {
 	border: 1px solid #aaa;
 	background-color:#fff;
 }
+#enable {
+	border: 1px solid #000;
+	border-radius: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	color: #333;
+	background-color: #eee;
+	font-weight:bold;
+	cursor:pointer;
+}
+#rate {
+	width: 400px;
+}
 </style>
 </head>
 <body>
@@ -18,9 +31,13 @@ canvas {
 <div id="heart"></div>
 
 <div style="background-color:#fff">
-	<label for="rate">Pulse: <span id="heartrate"></span></label>
+	<label for="rate">Pulse:</label>
 	<input id="rate" type="range" min="30" max="120" step="1" />
+	<span id="heartrate"></span>
 </div>
+<p>
+	<a id="enable">Enable</a> sound on mobile.
+</p>
 
 <!-- raf.js is a polyfill for requestAnimationFrame -->
 <script type="text/javascript" src="assets/js/lib/raf.js"></script>
@@ -54,6 +71,11 @@ canvas {
 	}, false);
 	rateInput.value = myHeart.heartrate;
 	rateInfo.innerHTML = myHeart.heartrate;
+
+	var enableMobile = document.getElementById('enable');
+	enableMobile.addEventListener('mouseup', function() {
+		myHeart.heartbeat();
+	}, false);
 </script>
 </body>
 </html>
