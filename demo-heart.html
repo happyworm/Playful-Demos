@@ -32,12 +32,26 @@ canvas {
 		audioEnabled: true
 	});
 
+	var trackRange = false;
 	var rateInput = document.getElementById('rate');
 	var rateInfo = document.getElementById('heartrate');
-	rateInput.addEventListener('change', function() {
-		var heartrate = this.value*1;
+	var pulseHandler = function() {
+		var heartrate = rateInput.value*1;
 		myHeart.pulse(heartrate);
 		rateInfo.innerHTML = heartrate;
+		console.log('pulse');
+	}
+	rateInput.addEventListener('change', pulseHandler, false);
+	rateInput.addEventListener('mousedown', function() {
+		trackRange = true;
+	}, false);
+	rateInput.addEventListener('mouseup', function() {
+		trackRange = false;
+	}, false);
+	rateInput.addEventListener('mousemove', function() {
+		if(trackRange) {
+			pulseHandler();
+		}
 	}, false);
 	rateInput.value = myHeart.heartrate;
 	rateInfo.innerHTML = myHeart.heartrate;
