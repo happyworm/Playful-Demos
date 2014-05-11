@@ -29,6 +29,7 @@
 
 	Heart.prototype = {
 		init: function(options) {
+			var self = this;
 			// The default options
 			this.options = {
 				id: '', // The id for broadcasts
@@ -39,10 +40,8 @@
 				bloat: 0.25,
 				color: '#DA755C',
 				audioEnabled: false,
-				audio: {
-					mp3: 'assets/audio/heart/heartbeat.mp3',
-					ogg: 'assets/audio/heart/heartbeat.ogg'
-				}
+				audio: 'assets/audio/heart/heartbeat.wav',
+				context: null
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -51,6 +50,8 @@
 				}
 			}
 			this.target = typeof this.options.target === 'string' ? document.querySelector(this.options.target) : this.options.target;
+			// The Web Audio API context
+			this.context = PM && PM.context ? PM.context : this.options.context;
 
 			this.heartrate = this._heartrate = 60;
 			this.rotation = Math.PI * (135/180);
@@ -64,22 +65,17 @@
 			this.ctx = this.canvas.getContext("2d");
 			this.target.appendChild(this.canvas);
 
+			// Web Audio API
 			if(this.options.audioEnabled) {
-				this.audio = document.createElement("audio");
-				this.audio.controls = true;
-				this.source = {
-					mp3: document.createElement("source"),
-					ogg: document.createElement("source")
+				this.request = new XMLHttpRequest();
+				this.request.open("GET", this.options.audio, true);
+				this.request.responseType = "arraybuffer";
+				this.request.onload = function() {
+					self.context.decodeAudioData(self.request.response, function(buffer) {
+						self.buffer = buffer;
+					});
 				};
-				this.source.mp3.src = this.options.audio.mp3;
-				this.source.mp3.setAttribute('type', 'audio/mpeg');
-				this.source.ogg.src = this.options.audio.ogg;
-				this.source.ogg.setAttribute('type', 'audio/ogg');
-
-				this.audio.appendChild(this.source.mp3);
-				this.audio.appendChild(this.source.ogg);
-
-				this.target.appendChild(this.audio);
+				this.request.send();
 			}
 
 			this.center = {
@@ -150,6 +146,7 @@
 				this.beatTime = new Date().getTime() / 1000;
 				this._heartrate = this.heartrate;
 				this._beat();
+				this.heartbeat();
 				this.enabled = true;
 			}
 		},
@@ -167,12 +164,7 @@
 					// Have completed 1 cycle
 					self.beatTime = now;
 					self._heartrate = self.heartrate;
-
-					if(self.options.audioEnabled) {
-						self.audio.currentTime = 0;
-						self.audio.playbackRate = self.heartrate / 60;
-						self.audio.play();
-					}
+					self.heartbeat();
 				}
 
 				if(DEBUG) console.log('this.beatTime: ' + self.beatTime + ' | now: ' + now + ' | time: ' + time + ' | pump: ' + pump + ' | t: ' + t);
@@ -182,6 +174,15 @@
 		kill: function() {
 			cancelAnimationFrame(this._beatId);
 			this.enabled = false;
+		},
+		heartbeat: function() {
+			if(this.options.audioEnabled && this.buffer) {
+				var source = this.context.createBufferSource();
+				source.connect(this.context.destination);
+				source.playbackRate.value = this._heartrate / 60;
+				source.buffer = this.buffer;
+				source.start(0);
+			}
 		}
 	}
 }(window.PM));
