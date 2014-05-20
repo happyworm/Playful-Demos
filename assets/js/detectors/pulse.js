@@ -7,14 +7,16 @@
  * http://opensource.org/licenses/MIT
  *
  * Author: Mark J Panaghiston
- * Version: 0.0.1
- * Date: 9th May 2014
+ * Version: 0.1.0
+ * Date: 20th May 2014
  *
  * Standing on the shoulders of giants
  * Camille Teicheira
  * https://github.com/camilleanne/biofeedback
  *
- * Requires: underscore.js
+ * Requires:
+ * underscore.js (http://underscorejs.org/)
+ * headtrackr.js (https://github.com/auduno/headtrackr/)
  */
 
 (function(PM, _) {
