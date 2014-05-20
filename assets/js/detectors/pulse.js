@@ -122,6 +122,7 @@
 				url: "ws://immense-lake-7450.herokuapp.com/echo",
 				width: 400,
 				height: 300,
+				face: null, // The Face instance to use for headtrackr.
 				fps: 15,
 				bufferWindow: 512,
 				averageOver: 5
@@ -183,46 +184,63 @@
 			}
 		},
 		initVideo: function() {
-			this.videoElem = document.createElement("video");
-			this.videoElem.setAttribute("width", this.options.width);
-			this.videoElem.setAttribute("height", this.options.height);
 
-			// camera
-			this.cameraCanvas = document.createElement("canvas");
-			this.cameraCanvas.setAttribute("width", this.options.width);
-			this.cameraCanvas.setAttribute("height", this.options.height);
-			this.cameraCanvas.className = 'camera';
-			this.cameraContext = this.cameraCanvas.getContext("2d");
+			if(this.options.face) {
+				this.videoElem = this.options.face.videoElem;
+				this.cameraCanvas = this.options.face.cameraCanvas;
+				this.cameraContext = this.options.face.cameraContext;
+			} else {
+				this.videoElem = document.createElement("video");
+				this.videoElem.setAttribute("width", this.options.width);
+				this.videoElem.setAttribute("height", this.options.height);
+
+				// camera
+				this.cameraCanvas = document.createElement("canvas");
+				this.cameraCanvas.setAttribute("width", this.options.width);
+				this.cameraCanvas.setAttribute("height", this.options.height);
+				this.cameraCanvas.className = 'camera';
+				this.cameraContext = this.cameraCanvas.getContext("2d");
+				this.target.appendChild(this.cameraCanvas);
+			}
 
 			this.overlayCanvas = document.createElement("canvas");
 			this.overlayCanvas.setAttribute("width", this.options.width);
 			this.overlayCanvas.setAttribute("height", this.options.height);
 			this.overlayCanvas.className = 'overlay';
 			this.overlayContext = this.overlayCanvas.getContext("2d");
-
-			this.target.appendChild(this.cameraCanvas);
 			this.target.appendChild(this.overlayCanvas);
 		},
 		start: function() {
 			var self = this;
-			if(!this.htrackr) {
-				this.htrackr = new headtrackr.Tracker({
+
+			if(this.options.face) {
+				// The first module to start the Face instance may set the options.
+				this.options.face.start({
 					detectionInterval: 1000 / this.options.fps,
 					ui: false
 				});
-				this.htrackr.init(this.videoElem, this.cameraCanvas);
-				document.addEventListener("facetrackingEvent", function(event) {
-					self.analyse(event);
+				PM.listen("faceupdate", function(data) {
+					self.analyse(data.event);
 				});
+			} else {
+				if(!this.htrackr) {
+					this.htrackr = new headtrackr.Tracker({
+						detectionInterval: 1000 / this.options.fps,
+						ui: false
+					});
+					this.htrackr.init(this.videoElem, this.cameraCanvas);
+					document.addEventListener("facetrackingEvent", function(event) {
+						self.analyse(event);
+					});
+				}
+				this.htrackr.start();
 			}
-			this.htrackr.start();
 
 			this.sendingDataId = setInterval(function() {
 				if(self.sendingData) {
 					self.sendData(JSON.stringify({"array": [self.red, self.green, self.blue], "bufferWindow": self.green.length}));
 				}
 			}, 1000);
-
 		},
 		stop: function() {
 			if(this.htrackr) {

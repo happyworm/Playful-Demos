@@ -36,11 +36,18 @@
 <script type="text/javascript" src="assets/js/lib/underscore-min.js"></script>
 <script type="text/javascript" src="assets/js/lib/headtrackr.min.js"></script>
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
+<script type="text/javascript" src="assets/js/detectors/face.js"></script>
 <script type="text/javascript" src="assets/js/detectors/pulse.js"></script>
 <script type="text/javascript" src="assets/js/outputs/heart.js"></script>
 <script type="text/javascript">
-	var myPulse = PM.Pulse({
+
+	var myFace = PM.Face({
 		target: '#camera'
+	});
+
+	var myPulse = PM.Pulse({
+		target: '#camera',
+		face: myFace
 	});
 
 	var myHeart = PM.Heart({
