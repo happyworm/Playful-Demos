@@ -63,6 +63,19 @@
 		myCountdown.playbackRate = data.target.bpm / 60;
 		myHeart.pulse(data.target.bpm);
 	});
+
+	// Added some console logs
+	PM.listen('facestatus', function(data) {
+		console.log('facestatus | status: ' + data.event.status);
+	});
+/*
+	PM.listen('faceupdate', function(data) {
+		console.log('faceupdate | confidence: ' + data.event.confidence);
+	});
+	PM.listen('headupdate', function(data) {
+		console.log('headupdate | x: ' + data.event.x + ' | y: ' + data.event.y + ' | z: ' + data.event.z);
+	});
+*/
 </script>
 </body>
 </html>

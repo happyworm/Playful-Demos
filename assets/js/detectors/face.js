@@ -82,6 +82,12 @@
 				document.addEventListener("facetrackingEvent", function(event) {
 					self.broadcast("faceupdate", event);
 				});
+				document.addEventListener("headtrackingEvent", function(event) {
+					self.broadcast("headupdate", event);
+				});
+				document.addEventListener("headtrackrStatus", function(event) {
+					self.broadcast("facestatus", event);
+				});
 			}
 			this.htrackr.start();
 		},
