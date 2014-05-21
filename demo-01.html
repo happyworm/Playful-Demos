@@ -127,6 +127,7 @@ div.title {
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
 <script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
+<script type="text/javascript" src="assets/js/detectors/usermedia.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
@@ -179,34 +180,41 @@ div.title {
 	var myVad;
 	var myMicrophoneProbe;
 
-	function gotAudio(stream) {
+	PM.listen('usermedia', function(data) {
+		if(data.id === 'mic') {
 
-		var microphone = PM.context.createMediaStreamSource(stream);
+			var microphone = PM.context.createMediaStreamSource(data.target.stream);
 
-		myMicrophoneProbe = PM.Probe({
-			id: 'mic',
-			input: microphone, // Pass in the input Node. [Requires the connect() method.]
-			onaudioprocess: function(event) {
-				graph_spectrum_mic.draw(this.byteFrequencyData);
-			}
-		});
+			myMicrophoneProbe = PM.Probe({
+				id: 'mic',
+				input: microphone, // Pass in the input Node. [Requires the connect() method.]
+				onaudioprocess: function(event) {
+					graph_spectrum_mic.draw(this.byteFrequencyData);
+				}
+			});
 
-		myVad = new PM.Vad({
-			id: 'mic',
-			probe: myMicrophoneProbe
-		});
+			myVad = new PM.Vad({
+				id: 'mic',
+				probe: myMicrophoneProbe
+			});
 
-		PM.listen('probeupdate', function(data) {
-			if(data.id === 'mic') {
-				myVad.update();
-				graph_energy_mic.draw([
-					255e8 * myVad.getEnergy(),
-					255e8 * myVad.monitor(),
-					32*(myVad.getSFM() + 35)
-				]);
-			}
-		});
-	}
+			PM.listen('probeupdate', function(data) {
+				if(data.id === 'mic') {
+					myVad.update();
+					graph_energy_mic.draw([
+						255e8 * myVad.getEnergy(),
+						255e8 * myVad.monitor(),
+						32*(myVad.getSFM() + 35)
+					]);
+				}
+			});
+		}
+	});
+
+	PM.listen('usermedia_error', function(data) {
+		var error = data.target.error;
+		console.log('UserMedia[' + data.id + '] ' + error.name + ': ' + error.message);
+	});
 
 	PM.listen('probeupdate', function(data) {
 		if(data.id === 'story') {
@@ -224,20 +232,11 @@ div.title {
 		}
 	});
 
-	function logError(error) {
-		console.log(error.name + ": " + error.message);
-	}
-
-	// console.dir(navigator);
-	// navigator.getUserMedia('audio', gotAudio, logError);
-
-	if(navigator.getUserMedia) { // W3C
-		navigator.getUserMedia({audio:true}, gotAudio, logError);
-	} else if(navigator.webkitGetUserMedia) { // WebKit
-		navigator.webkitGetUserMedia({audio:true}, gotAudio, logError);
-	} else if(navigator.mozGetUserMedia) { // Mozilla
-		navigator.mozGetUserMedia({audio:true}, gotAudio, logError);
-	}
+	var myUserMic = PM.UserMedia({
+		id: 'mic',
+		audio: true,
+		video: false
+	});
 
 	// console.log("sample rate: " + context.sampleRate);
 
