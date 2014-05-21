@@ -189,26 +189,28 @@
 				this.videoElem = this.options.face.videoElem;
 				this.cameraCanvas = this.options.face.cameraCanvas;
 				this.cameraContext = this.options.face.cameraContext;
+				this.overlayCanvas = this.options.face.overlayCanvas;
+				this.overlayContext = this.options.face.overlayContext;
 			} else {
 				this.videoElem = document.createElement("video");
 				this.videoElem.setAttribute("width", this.options.width);
 				this.videoElem.setAttribute("height", this.options.height);
 
-				// camera
 				this.cameraCanvas = document.createElement("canvas");
 				this.cameraCanvas.setAttribute("width", this.options.width);
 				this.cameraCanvas.setAttribute("height", this.options.height);
 				this.cameraCanvas.className = 'camera';
 				this.cameraContext = this.cameraCanvas.getContext("2d");
-				this.target.appendChild(this.cameraCanvas);
-			}
 
-			this.overlayCanvas = document.createElement("canvas");
-			this.overlayCanvas.setAttribute("width", this.options.width);
-			this.overlayCanvas.setAttribute("height", this.options.height);
-			this.overlayCanvas.className = 'overlay';
-			this.overlayContext = this.overlayCanvas.getContext("2d");
-			this.target.appendChild(this.overlayCanvas);
+				this.overlayCanvas = document.createElement("canvas");
+				this.overlayCanvas.setAttribute("width", this.options.width);
+				this.overlayCanvas.setAttribute("height", this.options.height);
+				this.overlayCanvas.className = 'overlay';
+				this.overlayContext = this.overlayCanvas.getContext("2d");
+
+				this.target.appendChild(this.cameraCanvas);
+				this.target.appendChild(this.overlayCanvas);
+			}
 		},
 		start: function() {
 			var self = this;

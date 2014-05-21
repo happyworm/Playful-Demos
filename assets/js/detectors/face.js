@@ -37,7 +37,8 @@
 				id: '', // The id of messages being broadcast.
 				target: null,
 				width: 400,
-				height: 300
+				height: 300,
+				overlay: true
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -72,7 +73,14 @@
 			this.cameraCanvas.className = 'camera';
 			this.cameraContext = this.cameraCanvas.getContext("2d");
 
+			this.overlayCanvas = document.createElement("canvas");
+			this.overlayCanvas.setAttribute("width", this.options.width);
+			this.overlayCanvas.setAttribute("height", this.options.height);
+			this.overlayCanvas.className = 'overlay';
+			this.overlayContext = this.overlayCanvas.getContext("2d");
+
 			this.target.appendChild(this.cameraCanvas);
+			this.target.appendChild(this.overlayCanvas);
 		},
 		start: function(options) {
 			var self = this;
@@ -80,6 +88,9 @@
 				this.htrackr = new headtrackr.Tracker(options);
 				this.htrackr.init(this.videoElem, this.cameraCanvas);
 				document.addEventListener("facetrackingEvent", function(event) {
+					if(self.options.overlay) {
+						self.update(event);
+					}
 					self.broadcast("faceupdate", event);
 				});
 				document.addEventListener("headtrackingEvent", function(event) {
@@ -94,6 +105,22 @@
 		stop: function() {
 			if(this.htrackr) {
 				this.htrackr.stop();
+			}
+		},
+		update: function(event) {
+			var ctx = this.overlayContext;
+			ctx.clearRect(0, 0, this.options.width, this.options.height);
+
+			// once we have stable tracking, draw rectangle
+			if (event.detection == "CS") {
+				ctx.translate(event.x, event.y)
+				ctx.rotate(event.angle-(Math.PI/2));
+				ctx.strokeStyle = "#00CC00";
+				ctx.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+				ctx.rotate((Math.PI/2)-event.angle);
+				ctx.translate(-event.x, -event.y);
+				// proximity.innerHTML = event.width*event.height;
+				// angle.innerHTML = (Math.PI/2)-event.angle;
 			}
 		}
 	};
