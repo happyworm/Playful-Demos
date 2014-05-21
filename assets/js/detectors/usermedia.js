@@ -17,6 +17,7 @@
 (function(PM) {
 
 	var DEBUG = true;
+	var updateId;
 
 	var UserMedia = function(options) {
 		this.init(options);
@@ -38,7 +39,11 @@
 				target: null,
 				audio: true,
 				video: true,
-				open: true
+				width: 400,
+				height: 300,
+				fps: 15,
+				open: true,
+				run: true
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -82,12 +87,47 @@
 			});
 		},
 		success: function(stream) {
+			var self = this;
 			if(this.target && this.options.video) {
 				this.videoElem = document.createElement('video');
 				this.videoElem.src = window.URL.createObjectURL(stream);
-				this.target.appendChild(this.videoElem);
+				this.videoElem.setAttribute("width", this.options.width);
+				this.videoElem.setAttribute("height", this.options.height);
 				this.videoElem.play();
+				// this.target.appendChild(this.videoElem);
+
+				this.cameraCanvas = document.createElement("canvas");
+				this.cameraCanvas.setAttribute("width", this.options.width);
+				this.cameraCanvas.setAttribute("height", this.options.height);
+				this.cameraCanvas.className = 'camera';
+				this.cameraContext = this.cameraCanvas.getContext("2d");
+
+				this.overlayCanvas = document.createElement("canvas");
+				this.overlayCanvas.setAttribute("width", this.options.width);
+				this.overlayCanvas.setAttribute("height", this.options.height);
+				this.overlayCanvas.className = 'overlay';
+				this.overlayContext = this.overlayCanvas.getContext("2d");
+
+				this.target.appendChild(this.cameraCanvas);
+				this.target.appendChild(this.overlayCanvas);
+
+				if(this.options.run) {
+					self.update();
+				}
 			}
+		},
+		update: function() {
+			var self = this;
+			// try/catch since video is not available at the start and no (known) other way to test.
+			try {
+				// Copy video to canvas
+				this.cameraContext.drawImage(this.videoElem, 0, 0, this.options.width, this.options.height);
+			} catch(err) {}
+
+			clearTimeout(updateId);
+			updateId = setTimeout(function() {
+				self.update();
+			}, 1000 / this.options.fps);
 		}
 	};
 }(window.PM));

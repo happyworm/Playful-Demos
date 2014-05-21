@@ -134,6 +134,7 @@ div.title {
 <script type="text/javascript" src="assets/js/core/pm.js"></script>
 <script type="text/javascript" src="assets/js/core/probe.js"></script>
 <script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
+<script type="text/javascript" src="assets/js/detectors/usermedia.js"></script>
 <script type="text/javascript" src="assets/js/detectors/face.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
@@ -142,6 +143,10 @@ div.title {
 
 	var enabled = false;
 
+/*
+
+	// Face or Camera - not both!
+
 	var myFace = PM.Face({
 		target: '#camera'
 	});
@@ -149,6 +154,15 @@ div.title {
 		ui : false,
 		// headPosition : false,
 		calcAngles : true
+	});
+	// myFace.stop();
+*/
+
+	var myCamera = PM.UserMedia({
+		id: 'camera',
+		target: '#camera',
+		audio: false,
+		video: true
 	});
 
 	// Use Graph module to display the spectrum
