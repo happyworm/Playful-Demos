@@ -123,6 +123,7 @@ div.title {
 	</div>
 
 	<div id="camera" class="video"></div>
+	<div id="motion" class="video"></div>
 
 	<p>
 		For best results, please have a well lit environment with a contrasting background.
@@ -136,6 +137,7 @@ div.title {
 <script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
 <script type="text/javascript" src="assets/js/detectors/usermedia.js"></script>
 <script type="text/javascript" src="assets/js/detectors/face.js"></script>
+<script type="text/javascript" src="assets/js/detectors/motion.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
@@ -163,6 +165,12 @@ div.title {
 		target: '#camera',
 		audio: false,
 		video: true
+	});
+
+	var myMotion = PM.Motion({
+		id: 'motion',
+		target: '#motion',
+		threshold: 20 // Out of 255
 	});
 
 	// Use Graph module to display the spectrum

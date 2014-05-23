@@ -128,6 +128,8 @@
 			updateId = setTimeout(function() {
 				self.update();
 			}, 1000 / this.options.fps);
+
+			this.broadcast("usermedia_update");
 		}
 	};
 }(window.PM));

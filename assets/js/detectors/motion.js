@@ -38,7 +38,7 @@
 				target: null,
 				width: 400,
 				height: 300,
-				overlay: true
+				threshold: 40 // Out of 255
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -48,8 +48,14 @@
 			}
 			this.target = typeof this.options.target === 'string' ? document.querySelector(this.options.target) : this.options.target;
 
+			this.firstTime = true;
+
+			this.previousData = null;
+			this.currentData = null;
+			this.outputData = null;
+
 			this.initCanvas();
-			// this.start();
+			this.start();
 		},
 		broadcast: function(type, event) {
 			// Broadcast the message
@@ -66,12 +72,74 @@
 			this.motionCanvas = document.createElement("canvas");
 			this.motionCanvas.setAttribute("width", this.options.width);
 			this.motionCanvas.setAttribute("height", this.options.height);
-			this.motionCanvas.className = 'camera';
+			this.motionCanvas.className = 'motion';
 			this.motionContext = this.motionCanvas.getContext("2d");
 
 			this.target.appendChild(this.motionCanvas);
 		},
 		start: function() {
+			var self = this;
+
+			var measure = function(diff) {
+				if(diff > self.options.threshold) {
+					return diff;
+				} else if(diff < -self.options.threshold) {
+					return -diff;
+				} else {
+					return 0;
+				}
+			};
+
+			if(PM) {
+				PM.listen('usermedia_update', function(data) {
+					var media = data.target;
+					self.previousData = self.currentData;
+					self.currentData = data.target.cameraContext.getImageData(0, 0, data.target.options.width, data.target.options.height);
+					if(self.firstTime) {
+						self.firstTime = false;
+					} else {
+						self.outputData = self.motionContext.createImageData(self.currentData.width, self.currentData.height);
+						for(var i = 0, iLen = self.currentData.data.length; i < iLen; i+=4) {
+							var rDiff = measure(self.currentData.data[i] - self.previousData.data[i]);
+							var gDiff = measure(self.currentData.data[i+1] - self.previousData.data[i+1]);
+							var bDiff = measure(self.currentData.data[i+2] - self.previousData.data[i+2]);
+							var aDiff = measure(self.currentData.data[i+3] - self.previousData.data[i+3]);
+
+							self.outputData.data[i] = rDiff;
+							self.outputData.data[i+1] = gDiff;
+							self.outputData.data[i+2] = bDiff;
+
+							if(rDiff || gDiff || bDiff) {
+								self.outputData.data[i+3] = 255;
+							} else {
+								self.outputData.data[i+3] = 0;
+							}
+						}
+						self.motionContext.putImageData(self.outputData, 0, 0);
+
+/*
+			forehead = this.cameraContext.getImageData(sx, sy, sw, sh);
+
+			for (i = 0; i < forehead.data.length; i+=4) {
+				// ** for reference: ** 
+				// var red = forehead.data[i];
+				// var green = forehead.data[i+1];
+				// var blue = forehead.data[i+2];
+				// var alpha = forehead.data[i+3];
+
+				redSum = forehead.data[i] + redSum;
+				greenSum = forehead.data[i+1] + greenSum;
+				blueSum = forehead.data[i+2] + blueSum;
+			}
+
+			var redAverage = redSum/(forehead.data.length/4);
+			var greenAverage = greenSum/(forehead.data.length/4);
+			var blueAverage = blueSum/(forehead.data.length/4);
+*/
+
+					}
+				});
+			}
 		},
 		stop: function() {
 		},
