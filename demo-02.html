@@ -147,8 +147,6 @@ div.title {
 
 	var enabled = false;
 
-/*
-
 	// Face or Camera - not both!
 
 	var myFace = PM.Face({
@@ -160,14 +158,20 @@ div.title {
 		calcAngles : true
 	});
 	// myFace.stop();
-*/
 
+	// Added some console logs
+	PM.listen('facestatus', function(data) {
+		console.log('facestatus | status: ' + data.event.status);
+	});
+
+/*
 	var myCamera = PM.UserMedia({
 		id: 'camera',
 		target: '#camera',
 		audio: false,
 		video: true
 	});
+*/
 
 	var myMotion = PM.Motion({
 		id: 'motion',

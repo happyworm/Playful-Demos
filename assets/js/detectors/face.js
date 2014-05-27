@@ -97,7 +97,11 @@
 					self.broadcast("headupdate", event);
 				});
 				document.addEventListener("headtrackrStatus", function(event) {
-					self.broadcast("facestatus", event);
+					if(event.status === 'tick') {
+						self.broadcast("usermedia_update", event);
+					} else {
+						self.broadcast("facestatus", event);
+					}
 				});
 			}
 			this.htrackr.start();
