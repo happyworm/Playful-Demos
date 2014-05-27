@@ -348,7 +348,9 @@ headtrackr.Tracker = function(params) {
 				}
 			}
 		}
-	 
+
+		headtrackerStatus("tick");
+
 		if (run) {
 			detector = window.setTimeout(track, params.detectionInterval);
 		}
