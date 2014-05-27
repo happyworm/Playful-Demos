@@ -202,7 +202,10 @@ div.title {
 			id: 'boring',
 			url: 'assets/audio/the-radio/boring.wav'
 		}]
-	})
+	});
+	PM.listen('sound_ready', function(data) {
+		console.log('sound_ready: id="' + data.id + '"');
+	});
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({

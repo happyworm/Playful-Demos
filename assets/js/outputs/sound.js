@@ -53,10 +53,10 @@
 			this.request.onload = function() {
 				self.context.decodeAudioData(self.request.response, function(buffer) {
 					self.buffer = buffer;
+					self.broadcast('sound_ready');
 					if(typeof self.options.callback === 'function') {
 						self.options.callback.call(self);
 					}
-					self.broadcast('sound_ready');
 				});
 			};
 			this.request.send();

@@ -52,6 +52,8 @@
 			// Setup the Sounds
 			var item;
 			this.sound = {};
+
+
 			for(var i = 0, iLen = this.options.audio.length; i < iLen; i++) {
 				item = this.options.audio[i];
 				this.sound[item.id] = PM.Sound({
@@ -59,7 +61,22 @@
 					audio: item.url
 				});
 			}
-
+/*
+			var i = 0, iLen = this.options.audio.length;
+			var setupSound = function() {
+				item = self.options.audio[i];
+				self.sound[item.id] = PM.Sound({
+					id: item.id,
+					audio: item.url,
+					callback: function() {
+						if(++i < iLen) {
+							setTimeout(setupSound, 0);
+						}
+					}
+				});
+			};
+			setupSound();
+*/
 		},
 		broadcast: function(type) {
 			// Broadcast the message
