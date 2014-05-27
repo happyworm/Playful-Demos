@@ -75,5 +75,6 @@
 			if(this.sound[id]) {
 				this.sound[id].play();
 			}
+		}
 	}
 }(window.PM));

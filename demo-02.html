@@ -141,6 +141,8 @@ div.title {
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
+<script type="text/javascript" src="assets/js/outputs/sound.js"></script>
+<script type="text/javascript" src="assets/js/outputs/speaker.js"></script>
 <script type="text/javascript">
 
 	var enabled = false;
@@ -172,6 +174,35 @@ div.title {
 		target: '#motion',
 		threshold: 20 // Out of 255
 	});
+
+	var mySpeaker = PM.Speaker({
+		id: 'radio',
+		audio: [{
+			id: 'come',
+			url: 'assets/audio/the-radio/come.wav'
+		}, {
+			id: 'go',
+			url: 'assets/audio/the-radio/go.wav'
+		}, {
+			id: 'settle',
+			url: 'assets/audio/the-radio/settle.wav'
+		}, {
+			id: 'hear',
+			url: 'assets/audio/the-radio/hear.wav'
+		}, {
+			id: 'relax',
+			url: 'assets/audio/the-radio/relax.wav'
+		}, {
+			id: 'room',
+			url: 'assets/audio/the-radio/room.wav'
+		}, {
+			id: 'louder',
+			url: 'assets/audio/the-radio/louder.wav'
+		}, {
+			id: 'boring',
+			url: 'assets/audio/the-radio/boring.wav'
+		}]
+	})
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
