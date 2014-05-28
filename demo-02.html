@@ -176,38 +176,40 @@ div.title {
 	});
 */
 
+/*
 	var myMotion = PM.Motion({
 		id: 'motion',
 		target: '#motion',
 		threshold: 20 // Out of 255
 	});
+*/
 
 	var mySpeaker = PM.Speaker({
 		id: 'radio',
 		audio: [{
 			id: 'come',
-			url: 'assets/audio/the-radio/mjp/come.wav'
+			url: 'assets/audio/the-radio/mb/come.wav'
 		}, {
 			id: 'go',
-			url: 'assets/audio/the-radio/mjp/go.wav'
+			url: 'assets/audio/the-radio/mb/go.wav'
 		}, {
 			id: 'settle',
-			url: 'assets/audio/the-radio/mjp/settle.wav'
+			url: 'assets/audio/the-radio/mb/settle.wav'
 		}, {
 			id: 'hear',
-			url: 'assets/audio/the-radio/mjp/hear.wav'
+			url: 'assets/audio/the-radio/mb/hear.wav'
 		}, {
 			id: 'relax',
-			url: 'assets/audio/the-radio/mjp/relax.wav'
+			url: 'assets/audio/the-radio/mb/relax.wav'
 		}, {
 			id: 'room',
-			url: 'assets/audio/the-radio/mjp/room.wav'
+			url: 'assets/audio/the-radio/mb/room.wav'
 		}, {
 			id: 'louder',
-			url: 'assets/audio/the-radio/mjp/louder.wav'
+			url: 'assets/audio/the-radio/mb/louder.wav'
 		}, {
 			id: 'boring',
-			url: 'assets/audio/the-radio/mjp/boring.wav'
+			url: 'assets/audio/the-radio/mb/boring.wav'
 		}]
 	});
 	PM.listen('sound_ready', function(data) {
