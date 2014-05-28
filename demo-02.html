@@ -182,7 +182,12 @@ div.title {
 	var myMotion = PM.Motion({
 		id: 'motion',
 		target: '#motion',
-		threshold: 20 // Out of 255
+		threshold_pixel: 60, // Out of 255
+		threshold: 0.05 // Out of 1
+	});
+	// Added some console logs
+	PM.listen('motion', function(data) {
+		console.log('[motion] | motion: ' + data.target.motion);
 	});
 
 
@@ -317,6 +322,7 @@ div.title {
 		lostFace = false, // headtrackr lost the face
 		farFace = false,
 		closeFace = false,
+		movement = false,
 		tiltedFace = false,
 		waiting = true, // We start in the waiting state.
 		waitingDelayId,
@@ -331,12 +337,13 @@ div.title {
 		lostFace = false;
 		farFace = false;
 		closeFace = false;
+		movement = false;
 		tiltedFace = false;
 	};
 
 	var manager = function(data) {
 		if(enabled) {
-			if(foundFace || lostFace || farFace || closeFace || tiltedFace) {
+			if(foundFace || lostFace || farFace || closeFace || movement || tiltedFace) {
 				if(!speaking) {
 					speaking = true;
 					myStory.pause('story');
@@ -354,6 +361,8 @@ div.title {
 						mySpeaker.play('room');
 					} else if(closeFace) {
 						mySpeaker.play('relax');
+					} else if(movement && !waiting) {
+						mySpeaker.play('settle');
 					} else if(tiltedFace) {
 						mySpeaker.play('boring');
 					}
@@ -401,7 +410,7 @@ div.title {
 	});
 	var tilt_angle = 0; // In degrees. Zero is vertical, as in normal head position.
 	PM.listen('faceupdate', function(data) {
-		var th_angle = 30; // degrees from vertical. 
+		var th_angle = 24; // degrees from vertical. 
 		var angle = 180 * (data.event.angle - (Math.PI / 2)) / Math.PI;
 		var angle_diff = angle - tilt_angle;
 		tilt_angle += angle_diff * 0.1; // Integrate to smooth value
@@ -418,6 +427,11 @@ div.title {
 				farFace = true;
 			}
 			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
+		}
+	});
+	PM.listen('motion', function(data) {
+		if(enabled) {
+			movement = true;
 		}
 	});
 
@@ -483,6 +497,7 @@ div.title {
 
 		myFace.start({
 			ui : false,
+			detectionInterval: 250,
 			// headPosition : false,
 			calcAngles : true
 		});

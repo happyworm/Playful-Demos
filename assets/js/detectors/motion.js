@@ -16,7 +16,7 @@
 
 (function(PM) {
 
-	var DEBUG = true;
+	var DEBUG = false;
 
 	var Motion = function(options) {
 		this.init(options);
@@ -38,7 +38,7 @@
 				target: null,
 				width: 400,
 				height: 300,
-				threshold: 40 // Out of 255
+				threshold_pixel: 40 // Out of 255
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -81,10 +81,11 @@
 			var self = this;
 
 			var measure = function(diff) {
-				if(diff > self.options.threshold) {
-					return diff;
-				} else if(diff < -self.options.threshold) {
-					return -diff;
+				var fired = 255;
+				if(diff > self.options.threshold_pixel) {
+					return fired;
+				} else if(diff < -self.options.threshold_pixel) {
+					return fired;
 				} else {
 					return 0;
 				}
@@ -99,6 +100,11 @@
 						self.firstTime = false;
 					} else {
 						self.outputData = self.motionContext.createImageData(self.currentData.width, self.currentData.height);
+						self.motionSum = {
+							red:0,
+							green:0,
+							blue:0
+						};
 						for(var i = 0, iLen = self.currentData.data.length; i < iLen; i+=4) {
 							var rDiff = measure(self.currentData.data[i] - self.previousData.data[i]);
 							var gDiff = measure(self.currentData.data[i+1] - self.previousData.data[i+1]);
@@ -109,14 +115,30 @@
 							self.outputData.data[i+1] = gDiff;
 							self.outputData.data[i+2] = bDiff;
 
+							self.motionSum.red += rDiff;
+							self.motionSum.green += gDiff;
+							self.motionSum.blue += bDiff;
+
 							if(rDiff || gDiff || bDiff) {
 								self.outputData.data[i+3] = 255;
 							} else {
 								self.outputData.data[i+3] = 0;
 							}
 						}
+						var factorToRatio = 4 / self.currentData.data.length / 255;
+						self.motionAvg = {
+							red: self.motionSum.red * factorToRatio,
+							green: self.motionSum.green * factorToRatio,
+							blue: self.motionSum.blue * factorToRatio
+						};
+						self.motion = (self.motionAvg.red + self.motionAvg.green + self.motionAvg.blue) / 3;
 						self.motionContext.putImageData(self.outputData, 0, 0);
 
+						if(DEBUG) console.log('[usermedia_update] | red: ' + self.motionAvg.red + ' | green: ' + self.motionAvg.green + ' | blue: ' + self.motionAvg.blue + ' | motion: ' + self.motion);
+
+						if(self.motion > self.options.threshold) {
+							self.broadcast('motion');
+						}
 /*
 			forehead = this.cameraContext.getImageData(sx, sy, sw, sh);
 
