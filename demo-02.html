@@ -316,14 +316,61 @@ div.title {
 		foundFace = false, // headtrackr found a face
 		lostFace = false, // headtrackr lost the face
 		tiltedFace = false,
-		waiting = false,
-		waitingDelayId;
+		waiting = true,
+		waitingDelayId,
+		restartDelayId;
+
+	var restart = function() {
+		myStory.resetTrack('story');
+	};
+
+	var manager = function(data) {
+		if(enabled) {
+			if(foundFace || lostFace || tiltedFace) {
+				if(!speaking) {
+					speaking = true;
+					myStory.pause('story');
+					clearTimeout(restartDelayId);
+
+					if(foundFace) {
+						foundFace = false;
+						waiting = false;
+						mySpeaker.play('come');
+						// avoid them queuing up
+						lostFace = false;
+						tiltedFace = false;
+					} else if(lostFace) {
+						lostFace = false;
+						waiting = true;
+						mySpeaker.play('go');
+						// Make timeout here for reseting to start after 10 sec.
+						restartDelayId = setTimeout(restart, 10000);
+						// avoid them queuing up
+						tiltedFace = false;
+					} else if(tiltedFace) {
+						tiltedFace = false;
+						mySpeaker.play('boring');
+					}
+				}
+			}
+		}
+	};
+
+	var management = function(data) {
+		manager(data);
+		if(waiting) {
+			clearTimeout(waitingDelayId);
+			waitingDelayId = setTimeout(management, 250);
+		}
+	};
 
 	var story_details = document.getElementById('story-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
 
+			management(data);
+/*
 			if(enabled) {
 				if(foundFace || lostFace || tiltedFace) {
 					if(!speaking) {
@@ -343,6 +390,7 @@ div.title {
 					}
 				}
 			}
+*/
 			console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
@@ -377,7 +425,7 @@ div.title {
 
 	PM.listen('sound_ended', function(data) {
 		speaking = false;
-		if(enabled) {
+		if(enabled && !waiting) {
 			myStory.play('story');
 		}
 	});
@@ -432,13 +480,16 @@ div.title {
 		PM.addClass(elemEnable, 'hidden');
 		PM.removeClass(elemDisable, 'hidden');
 
-		myStory.play();
+		myStory.play('bgm');
+		myStory.play('sfx');
 
 		myFace.start({
 			ui : false,
 			// headPosition : false,
 			calcAngles : true
 		});
+
+		management();
 
 	}, false);
 	elemDisable.addEventListener('click', function() {
@@ -449,7 +500,7 @@ div.title {
 		foundFace = false;
 		lostFace = false;
 		tiltedFace = false;
-		waiting = false;
+		waiting = true;
 		clearTimeout(waitingDelayId);
 		// Clean up story display
 		PM.removeClass(story_details, 'speech');
@@ -457,7 +508,6 @@ div.title {
 
 		PM.removeClass(elemEnable, 'hidden');
 		PM.addClass(elemDisable, 'hidden');
-
 
 		myStory.resetTrack();
 		myFace.stop();
