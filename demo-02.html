@@ -165,6 +165,9 @@ div.title {
 	// Added some console logs
 	PM.listen('facestatus', function(data) {
 		console.log('facestatus | status: ' + data.event.status);
+		if(data.event.status === 'found') {
+			mySpeaker.play('come');
+		}
 	});
 
 /*
