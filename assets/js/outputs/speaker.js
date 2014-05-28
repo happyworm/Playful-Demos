@@ -90,7 +90,7 @@
 		},
 		play: function(id) {
 			if(this.sound[id]) {
-				this.sound[id].play();
+				return this.sound[id].play();
 			}
 		}
 	}

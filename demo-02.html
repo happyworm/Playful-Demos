@@ -165,9 +165,6 @@ div.title {
 	// Added some console logs
 	PM.listen('facestatus', function(data) {
 		console.log('facestatus | status: ' + data.event.status);
-		if(data.event.status === 'found') {
-			mySpeaker.play('come');
-		}
 	});
 
 /*
@@ -310,25 +307,36 @@ div.title {
 		}
 	});
 
-	var speaking = false, spoken = false, waiting = false, waitingDelayId;
+	var speaking = false, // When the 'radio' is speaking to people. - Same as the wating flag?!?
+		// spoken = false, // obsolete? used to represent mic VAD event.
+		foundFace = false, // headtrackr found a face
+		lostFace = false, // headtrackr lost the face
+		tiltedFace = false,
+		waiting = false,
+		waitingDelayId;
 
 	var story_details = document.getElementById('story-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			if(spoken) {
-				spoken = false; // Capture flag
-				waiting = true;
-				myStory.pause('story');
 
-				if(speaking) {
-					// The mic should deal with it, but may want a timeout to avoid locked in a speaking state.
-				} else {
-					clearTimeout(waitingDelayId);
-					waitingDelayId = setTimeout(function() {
-						waiting = false;
-						myStory.play('story');
-					}, 3000);
+			if(enabled) {
+				if(foundFace || lostFace || tiltedFace) {
+					if(!speaking) {
+						speaking = true;
+						myStory.pause('story');
+
+						if(foundFace) {
+							foundFace = false;
+							mySpeaker.play('come');
+						} else if(lostFace) {
+							lostFace = false;
+							mySpeaker.play('go');
+						} else if(tiltedFace) {
+							tiltedFace = false;
+							mySpeaker.play('boring');
+						}
+					}
 				}
 			}
 			console.log('story: energy_fall | ' + data.target.voiceTrend);
@@ -339,6 +347,34 @@ div.title {
 			PM.addClass(story_details, 'speech');
 			console.log('story: energy_jump | ' + data.target.voiceTrend);
 		}
+	});
+
+	PM.listen('facestatus', function(data) {
+		if(enabled) {
+			switch(data.event.status) {
+				case 'found':
+					foundFace = true;
+					break;
+				case 'lost':
+				case 'redetecting':
+					lostFace = true;
+					break;
+			}
+		}
+	});
+	PM.listen('faceupdate', function(data) {
+		var th_angle = 20; // degrees from vertical. 
+		// if(data.event.angle >)
+		var angle = 180 * (data.event.angle - (Math.PI / 2)) / Math.PI;
+		console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle);
+		if(angle < -th_angle || th_angle < angle) {
+			tiltedFace = true;
+		}
+	});
+
+	PM.listen('sound_ended', function(data) {
+		speaking = false;
+		myStory.play('story');
 	});
 
 	document.querySelector('#story-play').addEventListener('click', function() {
@@ -398,7 +434,9 @@ div.title {
 
 		// Reset decision flags
 		speaking = false;
-		spoken = false;
+		foundFace = false;
+		lostFace = false;
+		tiltedFace = false;
 		waiting = false;
 		clearTimeout(waitingDelayId);
 		// Clean up story display

@@ -90,6 +90,9 @@
 				source.connect(this.context.destination);
 				source.buffer = this.buffer;
 				source.start(0);
+				return true;
+			} else {
+				return false;
 			}
 		}
 	}
