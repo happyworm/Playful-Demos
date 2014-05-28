@@ -213,6 +213,9 @@ div.title {
 	PM.listen('sound_ready', function(data) {
 		console.log('sound_ready: id="' + data.id + '"');
 	});
+	PM.listen('sound_ended', function(data) {
+		console.log('sound_ended: id="' + data.id + '"');
+	});
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({

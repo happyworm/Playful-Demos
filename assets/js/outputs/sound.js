@@ -72,8 +72,18 @@
 			}
 		},
 		play: function() {
+			var self = this;
 			if(this.buffer) {
 				var source = this.context.createBufferSource();
+				// Chrome is buggy with this onended event.
+				// The even works fine in Chrome before you enable the camera stream. Not sure how the two are connected.
+/*				source.onended = function() {
+					self.broadcast('sound_ended');
+				}; */
+				// Because Chrome sucks... We are using a ghetto timeout instead.
+				setTimeout(function() {
+					self.broadcast('sound_ended');
+				}, this.buffer.duration * 1000);
 				source.connect(this.context.destination);
 				source.buffer = this.buffer;
 				source.start(0);
