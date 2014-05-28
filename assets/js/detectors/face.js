@@ -100,6 +100,9 @@
 					if(event.status === 'tick') {
 						self.broadcast("usermedia_update", event);
 					} else {
+						if(event.status === 'lost' || event.status === 'redetecting') {
+							self.clear();
+						}
 						self.broadcast("facestatus", event);
 					}
 				});
@@ -109,6 +112,7 @@
 		stop: function() {
 			if(this.htrackr) {
 				this.htrackr.stop();
+				this.clear();
 			}
 		},
 		update: function(event) {
@@ -126,6 +130,10 @@
 				// proximity.innerHTML = event.width*event.height;
 				// angle.innerHTML = (Math.PI/2)-event.angle;
 			}
+		},
+		clear: function() {
+			var ctx = this.overlayContext;
+			ctx.clearRect(0, 0, this.options.width, this.options.height);
 		}
 	};
 }(window.PM));

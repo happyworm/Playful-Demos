@@ -155,12 +155,14 @@ div.title {
 	var myFace = PM.Face({
 		target: '#camera'
 	});
+/*
 	myFace.start({
 		ui : false,
 		// headPosition : false,
 		calcAngles : true
 	});
 	// myFace.stop();
+*/
 
 	// Added some console logs
 	PM.listen('facestatus', function(data) {
@@ -176,13 +178,13 @@ div.title {
 	});
 */
 
-/*
+
 	var myMotion = PM.Motion({
 		id: 'motion',
 		target: '#motion',
 		threshold: 20 // Out of 255
 	});
-*/
+
 
 	var mySpeaker = PM.Speaker({
 		id: 'radio',
@@ -366,9 +368,8 @@ div.title {
 	});
 	PM.listen('faceupdate', function(data) {
 		var th_angle = 20; // degrees from vertical. 
-		// if(data.event.angle >)
 		var angle = 180 * (data.event.angle - (Math.PI / 2)) / Math.PI;
-		console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle);
+		// console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle);
 		if(angle < -th_angle || th_angle < angle) {
 			tiltedFace = true;
 		}
@@ -376,7 +377,9 @@ div.title {
 
 	PM.listen('sound_ended', function(data) {
 		speaking = false;
-		myStory.play('story');
+		if(enabled) {
+			myStory.play('story');
+		}
 	});
 
 	document.querySelector('#story-play').addEventListener('click', function() {
@@ -416,10 +419,9 @@ div.title {
 
 	var myMsg = PM.MessageEmulator({
 		target: '#gui',
-		id: 'mic',
+		id: 'story',
 		className: 'module',
-		title: 'Generate (mic) Message Type: ',
-		// type: ['bananas', 'apples']
+		title: 'Generate (story) Message Type: ',
 		type: ['energy_jump', 'energy_fall']
 	});
 
@@ -429,7 +431,15 @@ div.title {
 		enabled = true;
 		PM.addClass(elemEnable, 'hidden');
 		PM.removeClass(elemDisable, 'hidden');
+
 		myStory.play();
+
+		myFace.start({
+			ui : false,
+			// headPosition : false,
+			calcAngles : true
+		});
+
 	}, false);
 	elemDisable.addEventListener('click', function() {
 		enabled = false;
@@ -447,7 +457,11 @@ div.title {
 
 		PM.removeClass(elemEnable, 'hidden');
 		PM.addClass(elemDisable, 'hidden');
-		myStory.pause();
+
+
+		myStory.resetTrack();
+		myFace.stop();
+
 	}, false);
 
 </script>
