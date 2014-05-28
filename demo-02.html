@@ -315,8 +315,10 @@ div.title {
 		// spoken = false, // obsolete? used to represent mic VAD event.
 		foundFace = false, // headtrackr found a face
 		lostFace = false, // headtrackr lost the face
+		farFace = false,
+		closeFace = false,
 		tiltedFace = false,
-		waiting = true,
+		waiting = true, // We start in the waiting state.
 		waitingDelayId,
 		restartDelayId;
 
@@ -324,33 +326,38 @@ div.title {
 		myStory.resetTrack('story');
 	};
 
+	var resetFlags = function() {
+		foundFace = false;
+		lostFace = false;
+		farFace = false;
+		closeFace = false;
+		tiltedFace = false;
+	};
+
 	var manager = function(data) {
 		if(enabled) {
-			if(foundFace || lostFace || tiltedFace) {
+			if(foundFace || lostFace || farFace || closeFace || tiltedFace) {
 				if(!speaking) {
 					speaking = true;
 					myStory.pause('story');
 					clearTimeout(restartDelayId);
 
 					if(foundFace) {
-						foundFace = false;
 						waiting = false;
 						mySpeaker.play('come');
-						// avoid them queuing up
-						lostFace = false;
-						tiltedFace = false;
 					} else if(lostFace) {
-						lostFace = false;
 						waiting = true;
 						mySpeaker.play('go');
 						// Make timeout here for reseting to start after 10 sec.
 						restartDelayId = setTimeout(restart, 10000);
-						// avoid them queuing up
-						tiltedFace = false;
+					} else if(farFace) {
+						mySpeaker.play('room');
+					} else if(closeFace) {
+						mySpeaker.play('relax');
 					} else if(tiltedFace) {
-						tiltedFace = false;
 						mySpeaker.play('boring');
 					}
+					resetFlags(); // Capture all flags to avoid them queuing up.
 				}
 			}
 		}
@@ -368,36 +375,14 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-
 			management(data);
-/*
-			if(enabled) {
-				if(foundFace || lostFace || tiltedFace) {
-					if(!speaking) {
-						speaking = true;
-						myStory.pause('story');
-
-						if(foundFace) {
-							foundFace = false;
-							mySpeaker.play('come');
-						} else if(lostFace) {
-							lostFace = false;
-							mySpeaker.play('go');
-						} else if(tiltedFace) {
-							tiltedFace = false;
-							mySpeaker.play('boring');
-						}
-					}
-				}
-			}
-*/
-			console.log('story: energy_fall | ' + data.target.voiceTrend);
+			// console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'story') {
 			PM.addClass(story_details, 'speech');
-			console.log('story: energy_jump | ' + data.target.voiceTrend);
+			// console.log('story: energy_jump | ' + data.target.voiceTrend);
 		}
 	});
 
@@ -420,6 +405,16 @@ div.title {
 		// console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle);
 		if(angle < -th_angle || th_angle < angle) {
 			tiltedFace = true;
+		}
+	});
+	PM.listen('headupdate', function(data) {
+		if(enabled) {
+			if(data.event.z < 50) {
+				closeFace = true;
+			} else if(data.event.z > 200) {
+				farFace = true;
+			}
+			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
 		}
 	});
 
@@ -497,10 +492,8 @@ div.title {
 
 		// Reset decision flags
 		speaking = false;
-		foundFace = false;
-		lostFace = false;
-		tiltedFace = false;
 		waiting = true;
+		resetFlags();
 		clearTimeout(waitingDelayId);
 		// Clean up story display
 		PM.removeClass(story_details, 'speech');
