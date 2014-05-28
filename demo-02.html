@@ -399,11 +399,14 @@ div.title {
 			}
 		}
 	});
+	var tilt_angle = 0; // In degrees. Zero is vertical, as in normal head position.
 	PM.listen('faceupdate', function(data) {
-		var th_angle = 20; // degrees from vertical. 
+		var th_angle = 30; // degrees from vertical. 
 		var angle = 180 * (data.event.angle - (Math.PI / 2)) / Math.PI;
-		// console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle);
-		if(angle < -th_angle || th_angle < angle) {
+		var angle_diff = angle - tilt_angle;
+		tilt_angle += angle_diff * 0.1; // Integrate to smooth value
+		// console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle + ' | angle_diff = ' + angle_diff + ' | tilt_angle = ' + tilt_angle);
+		if(tilt_angle < -th_angle || th_angle < tilt_angle) {
 			tiltedFace = true;
 		}
 	});
