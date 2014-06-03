@@ -125,7 +125,7 @@ div.title {
 
 	<div>
 		<div id="camera" class="video"></div>
-		<div id="motion" class="video"></div>
+		<div id="light" class="video"></div>
 		<div class="clearboth"></div>
 	</div>
 	<p>
@@ -140,7 +140,7 @@ div.title {
 <script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
 <script type="text/javascript" src="assets/js/detectors/usermedia.js"></script>
 <script type="text/javascript" src="assets/js/detectors/face.js"></script>
-<script type="text/javascript" src="assets/js/detectors/motion.js"></script>
+<script type="text/javascript" src="assets/js/detectors/light.js"></script>
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
@@ -169,25 +169,27 @@ div.title {
 		console.log('facestatus | status: ' + data.event.status);
 	});
 
-/*
+
+	// TMP add this in so don't always have to use headtrackr to get an image during dev of light level sensor
 	var myCamera = PM.UserMedia({
 		id: 'camera',
 		target: '#camera',
 		audio: false,
 		video: true
 	});
-*/
 
 
-	var myMotion = PM.Motion({
-		id: 'motion',
-		target: '#motion',
+
+	var myLight = PM.Light({
+		id: 'light',
+		target: '#light',
 		threshold_pixel: 60, // Out of 255
 		threshold: 0.05 // Out of 1
 	});
 	// Added some console logs
-	PM.listen('motion', function(data) {
-		console.log('[motion] | motion: ' + data.target.motion);
+	PM.listen('light_update', function(data) {
+		var bal = data.target.balance;
+		// console.log('[light_update] | white: ' + bal.white + ' | red: ' + bal.red + ' | green: ' + bal.green + ' | blue: ' + bal.blue);
 	});
 
 
@@ -429,9 +431,9 @@ div.title {
 			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
 		}
 	});
-	PM.listen('motion', function(data) {
+	PM.listen('light', function(data) {
 		if(enabled) {
-			movement = true;
+			// movement = true;
 		}
 	});
 
