@@ -38,7 +38,7 @@
 				target: null,
 				width: 400,
 				height: 300,
-				offset: 0.32,
+				offset: 0.34,
 				maxSignal: 0.15
 			};
 			// Read in instancing options.

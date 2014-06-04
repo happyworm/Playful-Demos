@@ -146,6 +146,7 @@ div.title {
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
 <script type="text/javascript" src="assets/js/outputs/sound.js"></script>
 <script type="text/javascript" src="assets/js/outputs/speaker.js"></script>
+<script type="text/javascript" src="assets/js/outputs/convolver.js"></script>
 <script type="text/javascript">
 
 	var enabled = false;
@@ -260,11 +261,12 @@ div.title {
 
 	var demoTrack = {
 		story: [{
-			mp3: 'assets/audio/tangye/micro-doc.mp3'
+			mp3: 'assets/audio/tangye/micro-doc.mp3',
+			vol: 0 // Silent so we can manipulate the output without the original always playing.
 		}],
 		bgm: [{
 			mp3: 'assets/audio/sue-aston/the-home-coming.mp3',
-			vol: 0.1
+			vol: 0.05
 		}],
 		sfx: [{
 			mp3: 'assets/audio/tangye/wildtrack.mp3'
@@ -317,6 +319,27 @@ div.title {
 			}
 		}
 	});
+/*
+	// myStory.waapi.story
+	var lowPass = PM.context.createBiquadFilter();
+	lowPass.type = 'lowpass';
+	lowPass.frequency.value = 2000;
+	lowPass.gain.value = 0;
+	lowPass.connect(PM.context.destination);
+	myStory.waapi.story.connect(lowPass);
+
+	var highPass = PM.context.createBiquadFilter();
+	highPass.type = 'highpass';
+	highPass.frequency.value = 2000;
+	highPass.gain.value = 0;
+	highPass.connect(PM.context.destination);
+	myStory.waapi.story.connect(highPass);
+*/
+	var myConvolver = PM.Convolver({
+		input: myStory.waapi.story
+	});
+	// The bgm volume levels are too high - Would need to attenuate it down here.
+	// myConvolver.input(myStory.waapi.bgm); // Connect the bgm to the convolver
 
 	var speaking = false, // When the 'radio' is speaking to people. - Same as the wating flag?!?
 		// spoken = false, // obsolete? used to represent mic VAD event.
@@ -406,6 +429,7 @@ div.title {
 				case 'lost':
 				case 'redetecting':
 					lostFace = true;
+					myConvolver.gain(1);
 					break;
 			}
 		}
@@ -422,12 +446,23 @@ div.title {
 		}
 	});
 	PM.listen('headupdate', function(data) {
+		var distance = 0;
+		var near = 100;
+		var far = 200
 		if(enabled) {
 			if(data.event.z < 50) {
 				closeFace = true;
 			} else if(data.event.z > 200) {
 				farFace = true;
 			}
+			if(data.event.z < near) {
+				distance = 0;
+			} else if(data.event.z < far) {
+				distance = (data.event.z - near) / (far - near);
+			} else {
+				distance = 1;
+			}
+			myConvolver.gain(distance);
 			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
 		}
 	});
