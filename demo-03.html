@@ -169,7 +169,7 @@ div.title {
 		console.log('facestatus | status: ' + data.event.status);
 	});
 
-
+/*
 	// TMP add this in so don't always have to use headtrackr to get an image during dev of light level sensor
 	var myCamera = PM.UserMedia({
 		id: 'camera',
@@ -177,7 +177,7 @@ div.title {
 		audio: false,
 		video: true
 	});
-
+*/
 
 
 	var myLight = PM.Light({
@@ -386,7 +386,7 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			management(data);
+			// management(data);
 			// console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
@@ -431,9 +431,18 @@ div.title {
 			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
 		}
 	});
-	PM.listen('light', function(data) {
+	PM.listen('light_update', function(data) {
 		if(enabled) {
 			// movement = true;
+			var pbr = 1;
+			var signal = data.target.balance.signal;
+			if(signal < 0) {
+				pbr = 1 + 0.25 * signal; // From 0.75 to 1
+			} else {
+				pbr = 1 + signal; // From 1 to 2
+			}
+			myStory.playbackRate(pbr, 'story');
+			// console.log('[light_update] signal: ' + signal + ' | pbr: ' + pbr);
 		}
 	});
 
@@ -494,6 +503,7 @@ div.title {
 		PM.addClass(elemEnable, 'hidden');
 		PM.removeClass(elemDisable, 'hidden');
 
+		myStory.play('story');
 		myStory.play('bgm');
 		myStory.play('sfx');
 
@@ -504,7 +514,7 @@ div.title {
 			calcAngles : true
 		});
 
-		management();
+		// management();
 
 	}, false);
 	elemDisable.addEventListener('click', function() {

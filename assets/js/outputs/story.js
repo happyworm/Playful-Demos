@@ -232,6 +232,24 @@
 				}
 			}
 		},
+		// Be aware of cross-browser differences when changing media and when media ends.
+		// Some will reset the playbackRate to the defaultPlaybackRate
+		// Here I am changing both to help minimize variation.
+		playbackRate: function(pbr, track) {
+			if(typeof track === 'string') {
+				if(this.audio[track]) {
+					this.audio[track].playbackRate = pbr;
+					this.audio[track].defaultPlaybackRate = pbr;
+				}
+			} else {
+				for(track in this.audio) {
+					if(this.audio.hasOwnProperty(track)) {
+						this.audio[track].playbackRate = pbr;
+						this.audio[track].defaultPlaybackRate = pbr;
+					}
+				}
+			}
+		},
 		// To connect the audio to the Web Audio API
 		connect: function(output, track) {
 			if(typeof track === 'string') {
