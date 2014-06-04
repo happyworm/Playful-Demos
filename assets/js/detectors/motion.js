@@ -38,7 +38,8 @@
 				target: null,
 				width: 400,
 				height: 300,
-				threshold_pixel: 40 // Out of 255
+				threshold_pixel: 60, // Out of 255
+				threshold: 0.05 // Out of 1
 			};
 			// Read in instancing options.
 			for(var option in options) {
