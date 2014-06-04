@@ -38,7 +38,8 @@
 				target: null,
 				width: 400,
 				height: 300,
-				threshold_pixel: 40 // Out of 255
+				offset: 0.32,
+				maxSignal: 0.15
 			};
 			// Read in instancing options.
 			for(var option in options) {
@@ -80,15 +81,16 @@
 		start: function() {
 			var self = this;
 
-			var measure = function(diff) {
-				var fired = 255;
-				if(diff > self.options.threshold_pixel) {
-					return fired;
-				} else if(diff < -self.options.threshold_pixel) {
-					return fired;
-				} else {
-					return 0;
+			var normalize = function(signal) {
+				var normalized = signal / self.options.maxSignal;
+
+				if(normalized > 1) {
+					normalized = 1;
+				} else if(normalized < -1) {
+					normalized = -1;
 				}
+
+				return normalized;
 			};
 
 			if(PM) {
@@ -114,20 +116,19 @@
 					};
 					self.balance.white = (self.balance.red + self.balance.green + self.balance.blue) / 3;
 
-					self.draw(self.balance);
+					self.balance.signal = normalize(self.balance.white - self.options.offset);
+
+					self.draw();
 
 					if(DEBUG) console.log('[usermedia_update] | red: ' + self.balance.red + ' | green: ' + self.balance.green + ' | blue: ' + self.balance.blue + ' | motion: ' + self.motion);
-/*
-					if(self.balance.white > self.options.threshold) {
-						self.broadcast('light_bright');
-					}
-*/
+
 					self.broadcast('light_update');
 				});
 			}
 		},
-		draw: function(balance) {
+		draw: function() {
 			var ctx = this.lightContext;
+			var balance = this.balance;
 			var xPitch = this.options.width / 3;
 			var yPitch = this.options.height / 2;
 			if(ctx) {
@@ -157,7 +158,9 @@
 				ctx.fillText((100*balance.green).toFixed(1)+'%', 1.5 * xPitch, 0.5 * yPitch);
 				ctx.fillText((100*balance.blue).toFixed(1)+'%', 2.5 * xPitch, 0.5 * yPitch);
 
-				ctx.fillText((100*balance.white).toFixed(1)+'%', 0.5 * this.options.width, 1.5 * yPitch);
+				ctx.fillText((100*balance.white).toFixed(1)+'%', 0.5 * this.options.width, 1.5 * yPitch - 12);
+
+				ctx.fillText((100*balance.signal).toFixed(1)+'%', 0.5 * this.options.width, 1.5 * yPitch + 12);
 			}
 		},
 		stop: function() {
