@@ -151,6 +151,12 @@ div.title {
 
 	var enabled = false;
 
+	var compressor = PM.context.createDynamicsCompressor();
+	compressor.connect(PM.context.destination);
+
+	// var destination = PM.context.destination; // During dev
+	var destination = compressor; // Once modules refactored to enable feature.
+
 	// Face or Camera - not both!
 
 	var myFace = PM.Face({
@@ -267,6 +273,7 @@ div.title {
 			story: true,
 			bgm: true
 		},
+		destination: destination,
 		track: {
 			story: [{
 				mp3: 'assets/audio/tangye/micro-doc.mp3'
@@ -337,7 +344,8 @@ div.title {
 	myStory.waapi.story.connect(highPass);
 */
 	var myConvolver = PM.Convolver({
-		input: myStory.waapi.story
+		input: myStory.waapi.story,
+		destination: destination
 	});
 	// [doing] The bgm volume levels are too high - Would need to attenuate it down here.
 	myConvolver.input(myStory.waapiGain.bgm); // Connect the bgm to the convolver

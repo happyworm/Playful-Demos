@@ -37,6 +37,7 @@
 				input: null, // The Node to connect to the input. Usually an AudioNode, but can be any object. [Rule: It must have the connect() method.]
 				gain: 1,
 				passThrough: false,
+				destination: null, // The destination to use, or defaults to the context destination
 				callback: null,
 				context: null
 			};
@@ -48,6 +49,7 @@
 			}
 			// The Web Audio API context
 			this.context = PM && PM.context ? PM.context : this.options.context;
+			this.destination = this.options.destination === null ? this.context.destination : this.options.destination;
 
 			// Web Audio API
 			this.node = this.context.createConvolver();
@@ -61,7 +63,7 @@
 				this.input(this.options.input);
 			}
 			if(!this.options.passThrough) {
-				this.connect(this.context.destination);
+				this.connect(this.destination);
 			}
 
 			// XHR request to get the impule response WAV

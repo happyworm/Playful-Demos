@@ -40,6 +40,7 @@
 					// sfx: []
 				},
 				passThrough: false, // Can be Boolean or an object with track name/boolean pairs. Default is always to connect to the context.destination.
+				destination: null, // The destination to use, or defaults to the context destination
 				audioType: {
 					mp3: 'audio/mpeg'
 				},
@@ -53,6 +54,7 @@
 			}
 			// The Web Audio API context
 			this.context = PM && PM.context ? PM.context : this.options.context;
+			this.destination = this.options.destination === null ? this.context.destination : this.options.destination;
 			// Properties to hold track information
 			this.audio = {};
 			this.index = {};
@@ -61,7 +63,6 @@
 			this.waapiGain = {};
 			// Init tracks
 			this.initTracks();
-
 		},
 		initTracks: function() {
 			var self = this;
@@ -104,13 +105,13 @@
 
 						// Connect to destination if not passThrough.
 						if(this.options.passThrough === false) {
-							this.waapiGain[track].connect(this.context.destination);
+							this.waapiGain[track].connect(this.destination);
 						} else if(typeof this.options.passThrough === 'object') {
 							if(!this.options.passThrough[track]) {
-								this.waapiGain[track].connect(this.context.destination);
+								this.waapiGain[track].connect(this.destination);
 							}
 						} else if(this.options.passThrough !== true) {
-							this.waapiGain[track].connect(this.context.destination);
+							this.waapiGain[track].connect(this.destination);
 						} else {
 							// do nothing
 						}
