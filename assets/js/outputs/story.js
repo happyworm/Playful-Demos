@@ -39,6 +39,7 @@
 					// bgm: [],
 					// sfx: []
 				},
+				passThrough: false, // Can be Boolean or an object with track name/boolean pairs. Default is always to connect to the context.destination.
 				audioType: {
 					mp3: 'audio/mpeg'
 				},
@@ -57,7 +58,7 @@
 			this.index = {};
 			this.status = {};
 			this.waapi = {};
-			this.gain = {};
+			this.waapiGain = {};
 			// Init tracks
 			this.initTracks();
 
@@ -98,9 +99,21 @@
 					// The Web Audio API source
 					if(this.context) {
 						this.waapi[track] = this.context.createMediaElementSource(this.audio[track]);
-						this.gain[track] = this.context.createGain();
-						this.waapi[track].connect(this.gain[track]);
-						this.gain[track].connect(this.context.destination);
+						this.waapiGain[track] = this.context.createGain();
+						this.waapi[track].connect(this.waapiGain[track]);
+
+						// Connect to destination if not passThrough.
+						if(this.options.passThrough === false) {
+							this.waapiGain[track].connect(this.context.destination);
+						} else if(typeof this.options.passThrough === 'object') {
+							if(!this.options.passThrough[track]) {
+								this.waapiGain[track].connect(this.context.destination);
+							}
+						} else if(this.options.passThrough !== true) {
+							this.waapiGain[track].connect(this.context.destination);
+						} else {
+							// do nothing
+						}
 					}
 
 					// Created event handlers for the track
@@ -203,7 +216,7 @@
 				}
 			}
 			this.audio[track].load();
-			this.gain[track].gain.value = typeof audio.vol === 'number' ? audio.vol : 1;
+			this.waapiGain[track].gain.value = typeof audio.vol === 'number' ? audio.vol : 1;
 			if(DEBUG) console.log('setAudio: ' + track + ' | audio = %o', audio);
 		},
 		play: function(track) {

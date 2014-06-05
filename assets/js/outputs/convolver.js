@@ -94,7 +94,7 @@
 			gain = gain > 1 ? 1 : gain < 0 ? 0 : gain;
 			this.amp.gain.value = gain;
 			this.pure.gain.value = 1 - gain;
-			console.log('gain: ' + gain);
+			// console.log('gain: ' + gain);
 		},
 		connect: function(output) {
 			this.amp.connect(output);
