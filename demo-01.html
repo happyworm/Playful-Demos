@@ -135,6 +135,11 @@ div.title {
 
 	var enabled = false;
 
+	var compressor = PM.context.createDynamicsCompressor();
+	compressor.connect(PM.context.destination);
+	// var destination = PM.context.destination; // During dev
+	var destination = compressor; // Once modules refactored to enable feature.
+
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
 		canvas: {
@@ -248,25 +253,23 @@ div.title {
 		}, false);
 	}
 
-	var demoTrack = {
-		story: [{
-			mp3: 'assets/audio/tangye/micro-doc.mp3'
-		}],
-		bgm: [{
-			mp3: 'assets/audio/sue-aston/the-home-coming.mp3',
-			vol: 0.1
-		}],
-		sfx: [{
-			mp3: 'assets/audio/tangye/wildtrack.mp3'
-		}]
-	};
-
 	var myStory = PM.Story({
 		wrapper: {
 			id: 'story'
 		},
-		// track: autoTrack
-		track: demoTrack
+		destination: destination,
+		track: {
+			story: [{
+				mp3: 'assets/audio/tangye/micro-doc.mp3'
+			}],
+			bgm: [{
+				mp3: 'assets/audio/sue-aston/the-home-coming.mp3',
+				vol: 0.1
+			}],
+			sfx: [{
+				mp3: 'assets/audio/tangye/wildtrack.mp3'
+			}]
+		}
 	});
 
 	var myStoryProbe = PM.Probe({
