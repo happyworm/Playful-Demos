@@ -2,13 +2,21 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Patient Story Teller</title>
+<title>Impatient Story Teller</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <style>
 body {
 	font-family: 'Trebuchet MS', Helvetica, sans-serif;
 	font-size: 12px;
 }
+.impatience-0 { background-color: #fff; }
+.impatience-1 { background-color: #fcc; }
+.impatience-2 { background-color: #c99; }
+.impatience-3 { background-color: #c66; }
+.impatience-4 { background-color: #933; }
+.impatience-5 { background-color: #c00; }
+.impatience-6 { background-color: #f00; }
+
 span.module {
 	background-color: #ccc;
 	border: 1px solid #666;
@@ -76,7 +84,7 @@ div.title {
 }
 </style>
 </head>
-<body>
+<body id="impatience-display">
 
 	<div id="story"></div>
 
@@ -131,6 +139,8 @@ div.title {
 <script type="text/javascript" src="assets/js/detectors/vad.js"></script>
 <script type="text/javascript" src="assets/js/outputs/graph.js"></script>
 <script type="text/javascript" src="assets/js/outputs/story.js"></script>
+<script type="text/javascript" src="assets/js/outputs/sound.js"></script>
+<script type="text/javascript" src="assets/js/outputs/speaker.js"></script>
 <script type="text/javascript">
 
 	var enabled = false;
@@ -139,6 +149,41 @@ div.title {
 	compressor.connect(PM.context.destination);
 	// var destination = PM.context.destination; // During dev
 	var destination = compressor; // Once modules refactored to enable feature.
+
+	var mySpeaker = PM.Speaker({
+		id: 'radio',
+		audio: [{
+			id: 'start',
+			url: 'assets/audio/impatient/mb/start.wav'
+		}, {
+			id: 'begin',
+			url: 'assets/audio/impatient/mb/begin.wav'
+		}, {
+			id: 'noise',
+			url: 'assets/audio/impatient/mb/noise.wav'
+		}, {
+			id: 'finish',
+			url: 'assets/audio/impatient/mb/finish.wav'
+		}, {
+			id: 'refuse',
+			url: 'assets/audio/impatient/mb/refuse.wav'
+		}, {
+			id: 'quiet',
+			url: 'assets/audio/impatient/mb/quiet.wav'
+		}, {
+			id: 'boring',
+			url: 'assets/audio/the-radio/mb/boring.wav'
+		}, {
+			id: 'thank',
+			url: 'assets/audio/impatient/mb/thank.wav'
+		}]
+	});
+	PM.listen('sound_ready', function(data) {
+		console.log('sound_ready: id="' + data.id + '"');
+	});
+	PM.listen('sound_ended', function(data) {
+		console.log('sound_ended: id="' + data.id + '"');
+	});
 
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
@@ -295,19 +340,169 @@ div.title {
 		filter: [{f: 100000, v:1}] // no filter
 	});
 
-	var speaking = false, spoken = false, waiting = false, waitingDelayId;
+	var user_speaking = false,
+		user_spoken = false,
+		radio_speaking = false, // When the 'radio' is talking
+
+		radio_complaining = false,
+		radio_complained = false,
+
+		radio_preparing = false,
+		radio_prepared = false,
+
+		waiting = false,
+		impatience = 0,
+		max_imp = 6,
+
+		relaxation = 5000, // ms to pass for impatience to drop by 1.
+		waitingDelayId,
+		impatienceDelayId;
+
+	var resetState = function() {
+		// Reset decision flags
+		user_speaking = false;
+		user_spoken = false;
+		radio_speaking = false;
+		radio_complaining = false;
+		radio_complained = false;
+		radio_preparing = false;
+		radio_prepared = false;
+		waiting = false;
+		impatience = 0;
+		clearTimeout(waitingDelayId);
+		clearTimeout(impatienceDelayId);
+	};
+
+	var impElem = document.getElementById('impatience-display');
+	var currentImpClass = '';
+
+	var setImpatience = function(imp) {
+		console.log('[setImpatience] | imp: ' + imp);
+		PM.removeClass(impElem, currentImpClass);
+		currentImpClass = 'impatience-' + imp;
+		PM.addClass(impElem, currentImpClass);
+	};
+
+	var relax = function() {
+		impatience = impatience - 1 < 0 ? 0 : impatience - 1;
+		// console.log('[relax] | impatience: ' + impatience);
+		setImpatience(impatience);
+		if(impatience > 0) {
+			clearTimeout(impatienceDelayId);
+			impatienceDelayId = setTimeout(relax, relaxation);
+		}
+	};
+
+	var manager = function(data) {
+		if(enabled) {
+
+			// Would list out other flags here as ORs
+			if(user_spoken) {
+				if(!radio_speaking) {
+					radio_speaking = true;
+					user_spoken = false; // Capture the flag
+
+					radio_complaining = true;
+					radio_complained = false; // Goes true when finished.
+
+					radio_preparing = false;
+					radio_prepared = false;
+
+					waiting = true;
+
+					clearTimeout(impatienceDelayId); // We is nae longer kewl
+
+					myStory.pause('story');
+					myStory.resetTrack('story');
+
+					impatience = impatience + 1 > max_imp ? max_imp : impatience + 1;
+					setImpatience(impatience);
+					switch(impatience) {
+						case 1:
+							mySpeaker.play('noise');
+							break;
+						case 2:
+							mySpeaker.play('finish');
+							break;
+						case 3:
+							mySpeaker.play('refuse');
+							break;
+						case 4:
+							mySpeaker.play('quiet');
+							break;
+						case 5:
+							mySpeaker.play('boring');
+							break;
+						default: // In case you do not define all the explicit max_imp values above.
+							mySpeaker.play('refuse');
+							break;
+					}
+				}
+			} else if(radio_complained) {
+				if(!radio_speaking) {
+					radio_speaking = true;
+					radio_complained = false; // Capture flag
+
+					radio_preparing = true;
+					radio_prepared = false;
+
+					switch(Math.round(Math.random())) {
+						case 0:
+							mySpeaker.play('start');
+							break;
+						case 1:
+							mySpeaker.play('begin');
+							break;
+					}
+				}
+			} else if(radio_prepared) {
+				if(!radio_speaking) {
+					radio_prepared = false; // Capture flag
+					waiting = false;
+					clearTimeout(impatienceDelayId);
+					impatienceDelayId = setTimeout(relax, relaxation);
+					myStory.play('story');
+				}
+			}
+		}
+	};
+
+	var management = function(data) {
+		console.log('[management]');
+		manager(data);
+		if(waiting) {
+			clearTimeout(waitingDelayId);
+			waitingDelayId = setTimeout(management, 250);
+		}
+	};
+
+	PM.listen('sound_ended', function(data) {
+		if(enabled) {
+			clearTimeout(waitingDelayId);
+
+			radio_speaking = false;
+
+			if(radio_complaining) {
+				radio_complaining = false;
+				radio_complained = true;
+				waitingDelayId = setTimeout(management, 2000); // When the radio says it will start again (if still no talking)
+			} else if(radio_preparing) {
+				radio_preparing = false;
+				radio_prepared = true;
+				waitingDelayId = setTimeout(management, 500); // When the story begins again (if still no talking)
+			} else {
+				// should not happen
+				console.log('[sound_ended] bad state');
+			}
+		}
+	});
+
 	var mic_details = document.getElementById('mic-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'mic') {
 
-			speaking = false;
-
-			if(waiting) {
-				clearTimeout(waitingDelayId);
-				waitingDelayId = setTimeout(function() {
-					waiting = false;
-					myStory.play('story');
-				}, 3000);
+			if(enabled) {
+				user_speaking = false;
 			}
 
 			PM.removeClass(mic_details, 'speech');
@@ -317,11 +512,8 @@ div.title {
 	PM.listen('energy_jump', function(data) {
 		if(data.id === 'mic') {
 			if(enabled) {
-				speaking = true;
-				if(!waiting) {
-					spoken = true;
-				}
-				clearTimeout(waitingDelayId); // Clear so that the following fall can deal with it after VAD ends.
+				user_speaking = true;
+				user_spoken = true;
 			}
 			PM.addClass(mic_details, 'speech');
 			console.log('mic: energy_jump | ' + data.target.voiceTrend);
@@ -341,21 +533,11 @@ div.title {
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			if(spoken) {
-				spoken = false; // Capture flag
-				waiting = true;
-				myStory.pause('story');
 
-				if(speaking) {
-					// The mic should deal with it, but may want a timeout to avoid locked in a speaking state.
-				} else {
-					clearTimeout(waitingDelayId);
-					waitingDelayId = setTimeout(function() {
-						waiting = false;
-						myStory.play('story');
-					}, 3000);
-				}
+			if(enabled) {
+				management(data);
 			}
+
 			console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
@@ -423,16 +605,19 @@ div.title {
 		enabled = true;
 		PM.addClass(elemEnable, 'hidden');
 		PM.removeClass(elemDisable, 'hidden');
+
 		myStory.play();
+		management();
 	}, false);
 	elemDisable.addEventListener('click', function() {
 		enabled = false;
 
 		// Reset decision flags
-		speaking = false;
-		spoken = false;
-		waiting = false;
-		clearTimeout(waitingDelayId);
+		resetState();
+		setImpatience(impatience); // after the reset
+
+		myStory.resetTrack();
+
 		// Clean up story display
 		PM.removeClass(story_details, 'speech');
 		graph_energy_story.draw([0,0,0]);
