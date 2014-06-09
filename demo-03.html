@@ -199,42 +199,6 @@ div.title {
 		// console.log('[light_update] | white: ' + bal.white + ' | red: ' + bal.red + ' | green: ' + bal.green + ' | blue: ' + bal.blue);
 	});
 
-
-	var mySpeaker = PM.Speaker({
-		id: 'radio',
-		audio: [{
-			id: 'come',
-			url: 'assets/audio/the-radio/mb/come.wav'
-		}, {
-			id: 'go',
-			url: 'assets/audio/the-radio/mb/go.wav'
-		}, {
-			id: 'settle',
-			url: 'assets/audio/the-radio/mb/settle.wav'
-		}, {
-			id: 'hear',
-			url: 'assets/audio/the-radio/mb/hear.wav'
-		}, {
-			id: 'relax',
-			url: 'assets/audio/the-radio/mb/relax.wav'
-		}, {
-			id: 'room',
-			url: 'assets/audio/the-radio/mb/room.wav'
-		}, {
-			id: 'louder',
-			url: 'assets/audio/the-radio/mb/louder.wav'
-		}, {
-			id: 'boring',
-			url: 'assets/audio/the-radio/mb/boring.wav'
-		}]
-	});
-	PM.listen('sound_ready', function(data) {
-		console.log('sound_ready: id="' + data.id + '"');
-	});
-	PM.listen('sound_ended', function(data) {
-		console.log('sound_ended: id="' + data.id + '"');
-	});
-
 	// Use Graph module to display the spectrum
 	var graph_spectrum_story = PM.Graph({
 		canvas: {
@@ -347,78 +311,12 @@ div.title {
 		input: myStory.waapi.story,
 		destination: destination
 	});
-	// [doing] The bgm volume levels are too high - Would need to attenuate it down here.
 	myConvolver.input(myStory.waapiGain.bgm); // Connect the bgm to the convolver
-
-	var speaking = false, // When the 'radio' is speaking to people. - Same as the wating flag?!?
-		// spoken = false, // obsolete? used to represent mic VAD event.
-		foundFace = false, // headtrackr found a face
-		lostFace = false, // headtrackr lost the face
-		farFace = false,
-		closeFace = false,
-		movement = false,
-		tiltedFace = false,
-		waiting = true, // We start in the waiting state.
-		waitingDelayId,
-		restartDelayId;
-
-	var restart = function() {
-		myStory.resetTrack('story');
-	};
-
-	var resetFlags = function() {
-		foundFace = false;
-		lostFace = false;
-		farFace = false;
-		closeFace = false;
-		movement = false;
-		tiltedFace = false;
-	};
-
-	var manager = function(data) {
-		if(enabled) {
-			if(foundFace || lostFace || farFace || closeFace || movement || tiltedFace) {
-				if(!speaking) {
-					speaking = true;
-					myStory.pause('story');
-					clearTimeout(restartDelayId);
-
-					if(foundFace) {
-						waiting = false;
-						mySpeaker.play('come');
-					} else if(lostFace) {
-						waiting = true;
-						mySpeaker.play('go');
-						// Make timeout here for reseting to start after 10 sec.
-						restartDelayId = setTimeout(restart, 10000);
-					} else if(farFace) {
-						mySpeaker.play('room');
-					} else if(closeFace) {
-						mySpeaker.play('relax');
-					} else if(movement && !waiting) {
-						mySpeaker.play('settle');
-					} else if(tiltedFace) {
-						mySpeaker.play('boring');
-					}
-					resetFlags(); // Capture all flags to avoid them queuing up.
-				}
-			}
-		}
-	};
-
-	var management = function(data) {
-		manager(data);
-		if(waiting) {
-			clearTimeout(waitingDelayId);
-			waitingDelayId = setTimeout(management, 250);
-		}
-	};
 
 	var story_details = document.getElementById('story-details');
 	PM.listen('energy_fall', function(data) {
 		if(data.id === 'story') {
 			PM.removeClass(story_details, 'speech');
-			// management(data);
 			// console.log('story: energy_fall | ' + data.target.voiceTrend);
 		}
 	});
@@ -432,12 +330,8 @@ div.title {
 	PM.listen('facestatus', function(data) {
 		if(enabled) {
 			switch(data.event.status) {
-				case 'found':
-					foundFace = true;
-					break;
 				case 'lost':
 				case 'redetecting':
-					lostFace = true;
 					myConvolver.gain(1);
 					break;
 			}
@@ -459,11 +353,6 @@ div.title {
 		var near = 100;
 		var far = 200
 		if(enabled) {
-			if(data.event.z < 50) {
-				closeFace = true;
-			} else if(data.event.z > 200) {
-				farFace = true;
-			}
 			if(data.event.z < near) {
 				distance = 0;
 			} else if(data.event.z < far) {
@@ -487,13 +376,6 @@ div.title {
 			}
 			myStory.playbackRate(pbr, 'story');
 			// console.log('[light_update] signal: ' + signal + ' | pbr: ' + pbr);
-		}
-	});
-
-	PM.listen('sound_ended', function(data) {
-		speaking = false;
-		if(enabled && !waiting) {
-			myStory.play('story');
 		}
 	});
 
