@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Gather Around</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<style>
+body {
+	font-family: 'Trebuchet MS', Helvetica, sans-serif;
+	font-size: 12px;
+}
+span.module {
+	background-color: #ccc;
+	border: 1px solid #666;
+	padding: 5px;
+	margin-right: 10px;
+	border-radius: 0px 5px 5px 0;
+	font-weight: bold;
+}
+.module button {
+	background-color: #ccf;
+	border: 2px solid #669;
+	border-radius: 5px;
+	font-weight: bold;
+	margin-left: 5px;
+	cursor: pointer;
+}
+div.details {
+	width: 1324px;
+	margin: 0 0 4px 0;
+	padding: 10px 10px 10px 0;
+	background-color: #eee;
+	border: 1px solid #ccc;
+}
+div.speech {
+	background-color: #fcc;
+	border: 1px solid #c99;
+}
+canvas.energy {
+	float:left;
+	display: block;
+	border: 1px solid #999;
+}
+canvas.spectrum {
+	float:left;
+	display: block;
+	border: 1px solid #999;
+}
+div.clearboth {
+	clear: both;
+}
+div.title {
+	float:left;
+	color:#333;
+	writing-mode:tb-rl;
+	-webkit-transform:rotate(90deg);
+	-moz-transform:rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+	white-space:nowrap;
+	display:block;
+	bottom:0;
+	width:20px;
+	height:20px;
+	font-size:14px;
+	line-height:18px;
+	font-weight:normal;
+	text-shadow: 0px 0px 1px #333;
+}
+.video {
+	float:left;
+	position:relative;
+	width: 400px;
+	height: 300px;
+}
+.video .camera,
+.video .overlay {
+	position:absolute;
+	top:0;
+}
+.note {
+	font-size: 0.8em;
+	color: #aaa;
+}
+.hidden {
+	display: none;
+}
+</style>
+</head>
+<body>
+
+	<div id="story"></div>
+
+	<p id="gui">
+		<span id="demo" class="module">
+			Demo:
+			<button id="demo-enable">enable</button>
+			<button id="demo-disable" class="hidden">disable</button>
+		</span>
+		<span id="story" class="module">
+			Story:
+			<button id="story-play">play</button>
+			<button id="story-pause">pause</button>
+			<button id="story-reset">reset</button>
+			<button id="story-previous">previous</button>
+			<button id="story-next">next</button>
+			<input type="radio" name="story-track" id="story-track-all" value="" />
+			<label for="story-track-all">ALL</label>
+			<input type="radio" name="story-track" id="story-track-story" value="story" checked />
+			<label for="story-track-story">story</label>
+			<input type="radio" name="story-track" id="story-track-bgm" value="bgm" />
+			<label for="story-track-bgm">bgm</label>
+			<input type="radio" name="story-track" id="story-track-sfx" value="sfx" />
+			<label for="story-track-sfx">sfx</label>
+		</span>
+		<button id="log">VAD log</button>
+	</p>
+
+	<div id="story-details" class="details">
+		<div class="title">Story</div>
+		<canvas id="energy-story" class="energy" width="25" height="255"></canvas>
+		<canvas id="spectrum-story" class="spectrum" width="1275" height="255"></canvas>
+		<div class="clearboth"></div>
+	</div>
+
+	<div>
+		<div id="camera" class="video"></div>
+		<div id="motion" class="video"></div>
+		<div class="clearboth"></div>
+	</div>
+	<p>
+		For best results, please have a well lit environment with a contrasting background.
+		<span class="note">Otherwise, the headtrackr can have problems.</span>
+	</p>
+
+<script type="text/javascript" src="assets/js/lib/headtrackr.min.js"></script>
+
+<script type="text/javascript" src="assets/js/core/pm.js"></script>
+<script type="text/javascript" src="assets/js/core/probe.js"></script>
+<script type="text/javascript" src="assets/js/core/message.emulator.js"></script>
+<script type="text/javascript" src="assets/js/detectors/usermedia.js"></script>
+<script type="text/javascript" src="assets/js/detectors/face.js"></script>
+<script type="text/javascript" src="assets/js/detectors/motion.js"></script>
+<script type="text/javascript" src="assets/js/detectors/vad.js"></script>
+<script type="text/javascript" src="assets/js/outputs/graph.js"></script>
+<script type="text/javascript" src="assets/js/outputs/story.js"></script>
+<script type="text/javascript" src="assets/js/outputs/sound.js"></script>
+<script type="text/javascript" src="assets/js/outputs/speaker.js"></script>
+<script type="text/javascript">
+
+	var enabled = false;
+
+	// Face or Camera - not both!
+
+	var myFace = PM.Face({
+		target: '#camera'
+	});
+/*
+	myFace.start({
+		ui : false,
+		// headPosition : false,
+		calcAngles : true
+	});
+	// myFace.stop();
+*/
+
+	// Added some console logs
+	PM.listen('facestatus', function(data) {
+		console.log('facestatus | status: ' + data.event.status);
+	});
+
+/*
+	var myCamera = PM.UserMedia({
+		id: 'camera',
+		target: '#camera',
+		audio: false,
+		video: true
+	});
+*/
+
+
+	var myMotion = PM.Motion({
+		id: 'motion',
+		target: '#motion',
+		threshold_pixel: 60, // Out of 255
+		threshold: 0.05 // Out of 1
+	});
+	// Added some console logs
+	PM.listen('motion', function(data) {
+		console.log('[motion] | motion: ' + data.target.motion);
+	});
+
+
+	var mySpeaker = PM.Speaker({
+		id: 'radio',
+		audio: [{
+			id: 'come',
+			url: 'assets/audio/the-radio/mb/come.wav'
+		}, {
+			id: 'go',
+			url: 'assets/audio/the-radio/mb/go.wav'
+		}, {
+			id: 'settle',
+			url: 'assets/audio/the-radio/mb/settle.wav'
+		}, {
+			id: 'hear',
+			url: 'assets/audio/the-radio/mb/hear.wav'
+		}, {
+			id: 'relax',
+			url: 'assets/audio/the-radio/mb/relax.wav'
+		}, {
+			id: 'room',
+			url: 'assets/audio/the-radio/mb/room.wav'
+		}, {
+			id: 'louder',
+			url: 'assets/audio/the-radio/mb/louder.wav'
+		}, {
+			id: 'boring',
+			url: 'assets/audio/the-radio/mb/boring.wav'
+		}]
+	});
+	PM.listen('sound_ready', function(data) {
+		console.log('sound_ready: id="' + data.id + '"');
+	});
+	PM.listen('sound_ended', function(data) {
+		console.log('sound_ended: id="' + data.id + '"');
+	});
+
+	// Use Graph module to display the spectrum
+	var graph_spectrum_story = PM.Graph({
+		canvas: {
+			id: 'spectrum-story',
+			width: 1275,
+			height: 255
+		},
+		chart: {
+			type: 'line',
+			pitch: 5,
+			width: 3
+		}
+	});
+
+	// Use Graph module to display the energy
+	var graph_energy_story = PM.Graph({
+		canvas: {
+			id: 'energy-story',
+			width: 25,
+			height: 255
+		}
+	});
+
+	var logBtn = document.querySelector('#log');
+	if(logBtn) {
+		logBtn.addEventListener('click', function() {
+			myStoryVad.triggerLog();
+		}, false);
+	}
+
+	var demoTrack = {
+		story: [{
+			mp3: 'assets/audio/tangye/micro-doc.mp3'
+		}],
+		bgm: [{
+			mp3: 'assets/audio/sue-aston/the-home-coming.mp3',
+			vol: 0.1
+		}],
+		sfx: [{
+			mp3: 'assets/audio/tangye/wildtrack.mp3'
+		}]
+	};
+
+	var myStory = PM.Story({
+		wrapper: {
+			id: 'story'
+		},
+		// track: autoTrack
+		track: demoTrack
+	});
+
+	var myStoryProbe = PM.Probe({
+		id: 'story',
+		// input: myStory, // Pass in the input Node. [Requires the connect() method.]
+		input: myStory.waapi.story, // Pass in the input Node. [Requires the connect() method.]
+		// scriptSize: 2048, // 512,
+		// fftSize: 512,
+		// smoothingTimeConstant: 0.8,
+		onaudioprocess: function(event) {
+			// Executes within the context of the Probe instance.
+			graph_spectrum_story.draw(this.byteFrequencyData);
+		}
+	});
+
+	// This var should be declared further up, due to its use in a handler
+	var myStoryVad = new PM.Vad({
+		id: 'story',
+		probe: myStoryProbe,
+		energy_threshold_ratio_pos: 1.5,
+		energy_threshold_ratio_neg: 0.75,
+		energy_integration: 0.75,
+		filter: [{f: 100000, v:1}] // no filter
+	});
+
+	PM.listen('probeupdate', function(data) {
+		if(data.id === 'story') {
+
+			// Want to see if the story is playing, otherwise we get garbage into the system.
+
+			if(!myStory.status.story.paused) {
+				myStoryVad.update();
+				graph_energy_story.draw([
+					255e8 * myStoryVad.getEnergy(),
+					255e8 * myStoryVad.monitor(),
+					32*(myStoryVad.getSFM() + 35)
+				]);
+			}
+		}
+	});
+
+	var speaking = false, // When the 'radio' is speaking to people. - Same as the wating flag?!?
+		// spoken = false, // obsolete? used to represent mic VAD event.
+		foundFace = false, // headtrackr found a face
+		lostFace = false, // headtrackr lost the face
+		farFace = false,
+		closeFace = false,
+		movement = false,
+		tiltedFace = false,
+		waiting = true, // We start in the waiting state.
+		waitingDelayId,
+		restartDelayId;
+
+	var restart = function() {
+		myStory.resetTrack('story');
+	};
+
+	var resetFlags = function() {
+		foundFace = false;
+		lostFace = false;
+		farFace = false;
+		closeFace = false;
+		movement = false;
+		tiltedFace = false;
+	};
+
+	var manager = function(data) {
+		if(enabled) {
+			if(foundFace || lostFace || farFace || closeFace || movement || tiltedFace) {
+				if(!speaking) {
+					speaking = true;
+					myStory.pause('story');
+					clearTimeout(restartDelayId);
+
+					if(foundFace) {
+						waiting = false;
+						mySpeaker.play('come');
+					} else if(lostFace) {
+						waiting = true;
+						mySpeaker.play('go');
+						// Make timeout here for reseting to start after 10 sec.
+						restartDelayId = setTimeout(restart, 10000);
+					} else if(farFace) {
+						mySpeaker.play('room');
+					} else if(closeFace) {
+						mySpeaker.play('relax');
+					} else if(movement && !waiting) {
+						mySpeaker.play('settle');
+					} else if(tiltedFace) {
+						mySpeaker.play('boring');
+					}
+					resetFlags(); // Capture all flags to avoid them queuing up.
+				}
+			}
+		}
+	};
+
+	var management = function(data) {
+		manager(data);
+		if(waiting) {
+			clearTimeout(waitingDelayId);
+			waitingDelayId = setTimeout(management, 250);
+		}
+	};
+
+	var story_details = document.getElementById('story-details');
+	PM.listen('energy_fall', function(data) {
+		if(data.id === 'story') {
+			PM.removeClass(story_details, 'speech');
+			management(data);
+			// console.log('story: energy_fall | ' + data.target.voiceTrend);
+		}
+	});
+	PM.listen('energy_jump', function(data) {
+		if(data.id === 'story') {
+			PM.addClass(story_details, 'speech');
+			// console.log('story: energy_jump | ' + data.target.voiceTrend);
+		}
+	});
+
+	PM.listen('facestatus', function(data) {
+		if(enabled) {
+			switch(data.event.status) {
+				case 'found':
+					foundFace = true;
+					break;
+				case 'lost':
+				case 'redetecting':
+					lostFace = true;
+					break;
+			}
+		}
+	});
+	var tilt_angle = 0; // In degrees. Zero is vertical, as in normal head position.
+	PM.listen('faceupdate', function(data) {
+		var th_angle = 24; // degrees from vertical. 
+		var angle = 180 * (data.event.angle - (Math.PI / 2)) / Math.PI;
+		var angle_diff = angle - tilt_angle;
+		tilt_angle += angle_diff * 0.1; // Integrate to smooth value
+		// console.log('faceupdate: e.angle = ' + data.event.angle + ' | angle = ' + angle + ' | angle_diff = ' + angle_diff + ' | tilt_angle = ' + tilt_angle);
+		if(tilt_angle < -th_angle || th_angle < tilt_angle) {
+			tiltedFace = true;
+		}
+	});
+	PM.listen('headupdate', function(data) {
+		if(enabled) {
+			if(data.event.z < 50) {
+				closeFace = true;
+			} else if(data.event.z > 200) {
+				farFace = true;
+			}
+			// console.log('[headupdate] data.event.z: ' + data.event.z + ' | closeFace: ' + closeFace + ' | farFace: ' + farFace);
+		}
+	});
+	PM.listen('motion', function(data) {
+		if(enabled) {
+			movement = true;
+		}
+	});
+
+	PM.listen('sound_ended', function(data) {
+		speaking = false;
+		if(enabled && !waiting) {
+			myStory.play('story');
+		}
+	});
+
+	document.querySelector('#story-play').addEventListener('click', function() {
+		myStory.play(getTrack());
+	}, false);
+	document.querySelector('#story-pause').addEventListener('click', function() {
+		myStory.pause(getTrack());
+	}, false);
+	document.querySelector('#story-reset').addEventListener('click', function() {
+		myStory.resetTrack(getTrack());
+	}, false);
+	document.querySelector('#story-previous').addEventListener('click', function() {
+		myStory.previousAudio(getTrack());
+	}, false);
+	document.querySelector('#story-next').addEventListener('click', function() {
+		myStory.nextAudio(getTrack());
+	}, false);
+
+
+	var getRadioValue = function(name) {
+		var value;
+		var options = document.getElementsByName(name);
+		for(var i = 0; i < options.length; i++) {
+			if(options[i].checked === true) {
+				value = options[i].value;
+				// console.log('getRadioValue: value = "' + value + '"');
+			}
+		}
+		return value;
+	};
+
+	var getTrack = function() {
+		var track = getRadioValue("story-track");
+		track = track ? track : undefined;
+		return track;
+	}
+
+	var myMsg = PM.MessageEmulator({
+		target: '#gui',
+		id: 'story',
+		className: 'module',
+		title: 'Generate (story) Message Type: ',
+		type: ['energy_jump', 'energy_fall']
+	});
+
+	var elemEnable = document.querySelector('#demo-enable');
+	var elemDisable = document.querySelector('#demo-disable');
+	elemEnable.addEventListener('click', function() {
+		enabled = true;
+		PM.addClass(elemEnable, 'hidden');
+		PM.removeClass(elemDisable, 'hidden');
+
+		myStory.play('bgm');
+		myStory.play('sfx');
+
+		myFace.start({
+			ui : false,
+			detectionInterval: 250,
+			// headPosition : false,
+			calcAngles : true
+		});
+
+		management();
+
+	}, false);
+	elemDisable.addEventListener('click', function() {
+		enabled = false;
+
+		// Reset decision flags
+		speaking = false;
+		waiting = true;
+		resetFlags();
+		clearTimeout(waitingDelayId);
+		// Clean up story display
+		PM.removeClass(story_details, 'speech');
+		graph_energy_story.draw([0,0,0]);
+
+		PM.removeClass(elemEnable, 'hidden');
+		PM.addClass(elemDisable, 'hidden');
+
+		myStory.resetTrack();
+		myFace.stop();
+
+	}, false);
+
+</script>
+</body>
+</html>
